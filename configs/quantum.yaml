@@ -1,0 +1,15 @@
+runmode: debug               
+addr: :8080   
+shutdown-timeout: 10s 
+ 
+db:
+   host: 127.0.0.1 
+   port: 5432       
+   username: quantum  
+   password: quantum1234 
+   database: quantum  
+   sslmode: disable 
+   max-idle-connections: 100 
+   max-open-connections: 100 
+   max-connection-life-time: 10s
+   log-level: 4 
