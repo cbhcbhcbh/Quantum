@@ -1,4 +1,4 @@
-package quantum
+package apiserver
 
 import (
 	"context"
@@ -19,6 +19,13 @@ func NewQuantumCommand() *cobra.Command {
 		Use:   "quantum",
 		Short: "Quantum is a CLI application",
 		Long:  `A CLI application for quantum computing tasks`,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := initStore(); err != nil {
+				return err
+			}
+
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run()
 		},
@@ -39,15 +46,15 @@ func NewQuantumCommand() *cobra.Command {
 }
 
 func run() error {
-	if err := initStore(); err != nil {
-		return err
-	}
-
 	gin.SetMode(viper.GetString("runmode"))
 	engine := gin.Default()
 
 	mws := []gin.HandlerFunc{gin.Recovery()}
 	engine.Use(mws...)
+
+	if err := installRouters(engine); err != nil {
+		return err
+	}
 
 	httpsrv := &http.Server{
 		Addr:    viper.GetString("addr"),

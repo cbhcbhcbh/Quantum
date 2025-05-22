@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cbhcbhcbh/Quantum/internal/quantum"
+	quantum "github.com/cbhcbhcbh/Quantum/internal/apiserver"
 )
 
 func main() {

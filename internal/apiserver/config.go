@@ -1,4 +1,4 @@
-package quantum
+package apiserver
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/cbhcbhcbh/Quantum/internal/quantum/store"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/store"
 	"github.com/cbhcbhcbh/Quantum/pkg/db"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
