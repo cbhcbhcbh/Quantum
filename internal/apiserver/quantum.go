@@ -1,17 +1,11 @@
 package apiserver
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 
-	"github.com/gin-gonic/gin"
+	"github.com/cbhcbhcbh/Quantum/internal/config"
+	"github.com/cbhcbhcbh/Quantum/internal/service/bootstrap"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func NewQuantumCommand() *cobra.Command {
@@ -20,14 +14,14 @@ func NewQuantumCommand() *cobra.Command {
 		Short: "Quantum is a CLI application",
 		Long:  `A CLI application for quantum computing tasks`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := initStore(); err != nil {
+			if err := config.InitStore(); err != nil {
 				return err
 			}
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run()
+			return bootstrap.Start()
 		},
 		Args: func(cmd *cobra.Command, args []string) error {
 			for _, arg := range args {
@@ -40,48 +34,7 @@ func NewQuantumCommand() *cobra.Command {
 		},
 	}
 
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(bootstrap.LoadConfig)
 
 	return cmd
-}
-
-func run() error {
-	gin.SetMode(viper.GetString("runmode"))
-	engine := gin.Default()
-
-	mws := []gin.HandlerFunc{gin.Recovery()}
-	engine.Use(mws...)
-
-	if err := installRouters(engine); err != nil {
-		return err
-	}
-
-	httpsrv := &http.Server{
-		Addr:    viper.GetString("addr"),
-		Handler: engine,
-	}
-
-	go func() {
-		if err := httpsrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			return
-		}
-	}()
-
-	return gracefulShutdown(httpsrv)
-}
-
-func gracefulShutdown(httpsrv *http.Server) error {
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
-	<-quit
-
-	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("shutdown-timeout"))
-	defer cancel()
-
-	if err := httpsrv.Shutdown(ctx); err != nil {
-		return err
-	}
-
-	return nil
 }
