@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/code"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
+	"github.com/cbhcbhcbh/Quantum/internal/service/handler"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,10 +21,7 @@ func RegisterWsRouters(engine *gin.Engine) error {
 	// websocket routers
 	ws := engine.Group("/im")
 	{
-		ws.GET("/connect", func(c *gin.Context) {
-			log.C(c).Infow("WebSocket connection established")
-			code.OK.ToJson(c)
-		})
+		ws.GET("/connect", handler.Connect)
 	}
 
 	return nil
