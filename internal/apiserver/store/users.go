@@ -15,6 +15,7 @@ type UsersStore interface {
 	Update(ctx context.Context, user *model.UsersM) error
 	List(ctx context.Context, offset, limit int) (int64, []*model.UsersM, error)
 	Delete(ctx context.Context, name string) error
+	CheckUserExist(ctx context.Context, name string, email string) (bool, error)
 }
 
 type users struct {
@@ -30,15 +31,6 @@ func NewUsers(db *gorm.DB) UsersStore {
 }
 
 func (u *users) Create(ctx context.Context, user *model.UsersM) error {
-	var count int64
-	if err := u.db.WithContext(ctx).Model(&model.UsersM{}).Where("name = ?", user.Name).Count(&count).Error; err != nil {
-		return err
-	}
-
-	if count > 0 {
-		return errors.New(code.ErrUserAlreadyExist.Message)
-	}
-
 	return u.db.WithContext(ctx).Create(user).Error
 }
 
@@ -76,4 +68,18 @@ func (u *users) Delete(ctx context.Context, name string) error {
 	}
 
 	return nil
+}
+
+func (u *users) CheckUserExist(ctx context.Context, name string, email string) (bool, error) {
+	var user model.UsersM
+	if result := u.db.WithContext(ctx).Model(&model.UsersM{}).Where("name = ? or email = ?", name, email).First(&user); result.RowsAffected > 0 {
+		if user.Name == name {
+			return true, errors.New(code.ErrUserAlreadyExist.Message)
+		}
+		if user.Email == email {
+			return true, errors.New(code.ErrEmailAlreadyExist.Message)
+		}
+	}
+
+	return false, nil
 }

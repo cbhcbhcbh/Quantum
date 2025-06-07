@@ -21,6 +21,8 @@ var (
 
 	ErrUserAlreadyExist = &response.JsonResponse{Code: 400, Message: "FailedOperation.UserAlreadyExist", Data: "User already exist."}
 
+	ErrEmailAlreadyExist = &response.JsonResponse{Code: 400, Message: "FailedOperation.EmailAlreadyExist", Data: "Email already exist."}
+
 	ErrUserNotFound = &response.JsonResponse{Code: 404, Message: "ResourceNotFound.UserNotFound", Data: "User was not found."}
 
 	ErrPasswordIncorrect = &response.JsonResponse{Code: 401, Message: "InvalidParameter.PasswordIncorrect", Data: "Password was incorrect."}

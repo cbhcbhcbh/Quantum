@@ -27,6 +27,7 @@ func RegisterApiRouters(engine *gin.Engine) error {
 		authGroup := api.Group("/auth")
 		{
 			authGroup.POST("/login", uc.Login)
+			authGroup.POST("/registered", uc.Registered)
 		}
 	}
 

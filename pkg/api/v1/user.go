@@ -1,11 +1,13 @@
 package v1
 
-type CreateUserRequest struct {
-	Name     string `json:"name" valid:"alphanum,required,stringlength(1|255)"`
-	Password string `json:"password" valid:"required,stringlength(6|18)"`
-	Nickname string `json:"nickname" valid:"required,stringlength(1|255)"`
-	Email    string `json:"email" valid:"required,email"`
-	Phone    string `json:"phone" valid:"required,stringlength(11|11)"`
+type RegisterUserRequest struct {
+	Name           string `json:"name" valid:"alphanum,required,stringlength(1|255)"`
+	Password       string `json:"password" valid:"required,stringlength(6|18)"`
+	PasswordRepeat string `validate:"required,eqcsfield=Password"`
+	EmailType      int    `validate:"required,gte=1,lte=2"`
+	Email          string `json:"email" valid:"required,email"`
+	Phone          string `json:"phone" valid:"required,stringlength(11|11)"`
+	Code           string `validate:"required,len=4"`
 }
 
 type LoginRequest struct {
