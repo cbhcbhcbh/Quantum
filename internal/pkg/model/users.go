@@ -1,10 +1,11 @@
 package model
 
-type ImUsersM struct {
+type UsersM struct {
 	ModelID
 	ModelTimestamps
 	Name          string `gorm:"column:name" json:"name"`
 	Email         string `gorm:"column:email" json:"email"`
+	Password      string `gorm:"column:password" json:"password"`
 	Avatar        string `gorm:"column:avatar" json:"avatar"`
 	Status        int8   `gorm:"column:status" json:"status"`
 	Bio           string `gorm:"column:bio" json:"bio"`
@@ -15,6 +16,6 @@ type ImUsersM struct {
 	Uid           string `gorm:"column:uid" json:"uid"`
 }
 
-func (iu *ImUsersM) Table() string {
-	return "im_users"
+func (u *UsersM) Table() string {
+	return "users"
 }

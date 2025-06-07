@@ -18,4 +18,10 @@ var (
 	ErrTokenInvalid = &response.JsonResponse{Code: 401, Message: "AuthFailure.TokenInvalid", Data: "Token was invalid."}
 
 	ErrUnauthorized = &response.JsonResponse{Code: 401, Message: "AuthFailure.Unauthorized", Data: "Unauthorized."}
+
+	ErrUserAlreadyExist = &response.JsonResponse{Code: 400, Message: "FailedOperation.UserAlreadyExist", Data: "User already exist."}
+
+	ErrUserNotFound = &response.JsonResponse{Code: 404, Message: "ResourceNotFound.UserNotFound", Data: "User was not found."}
+
+	ErrPasswordIncorrect = &response.JsonResponse{Code: 401, Message: "InvalidParameter.PasswordIncorrect", Data: "Password was incorrect."}
 )

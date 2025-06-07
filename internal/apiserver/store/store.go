@@ -13,7 +13,7 @@ var (
 
 type IStore interface {
 	DB() *gorm.DB
-	ImUsers() ImUsersStore
+	Users() UsersStore
 }
 
 type datastore struct {
@@ -36,6 +36,6 @@ func (ds *datastore) DB() *gorm.DB {
 	return ds.db
 }
 
-func (ds *datastore) ImUsers() ImUsersStore {
-	return NewImUsers(ds.db)
+func (ds *datastore) Users() UsersStore {
+	return NewUsers(ds.db)
 }

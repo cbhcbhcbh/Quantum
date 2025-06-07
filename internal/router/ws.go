@@ -8,6 +8,7 @@ import (
 )
 
 func RegisterWsRouters(engine *gin.Engine) error {
+	WsService := new(handler.WsService)
 	engine.NoRoute(func(c *gin.Context) {
 		code.ErrPageNotFound.ToJson(c)
 	})
@@ -21,7 +22,7 @@ func RegisterWsRouters(engine *gin.Engine) error {
 	// websocket routers
 	ws := engine.Group("/im")
 	{
-		ws.GET("/connect", handler.Connect)
+		ws.GET("/connect", WsService.Connect)
 	}
 
 	return nil

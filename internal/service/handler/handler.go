@@ -7,7 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Connect(ctx *gin.Context) {
+type WsService struct {
+}
+
+func (*WsService) Connect(ctx *gin.Context) {
 	conn, err := ws.App(ctx.Writer, ctx.Request)
 	if err != nil {
 		log.C(ctx).Errorw("WebSocket connection failed")

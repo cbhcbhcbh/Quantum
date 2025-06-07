@@ -3,7 +3,7 @@ package model
 import "time"
 
 type ModelID struct {
-	ID uint `gorm:"column:id;primaryKey;autoIncrement;" json:"id,omitempty"`
+	ID int64 `gorm:"column:id;primaryKey;autoIncrement;" json:"id,omitempty"`
 }
 
 type ModelTimestamps struct {
