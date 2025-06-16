@@ -1,8 +1,8 @@
 package biz
 
 import (
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/biz/users"
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/store"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/users"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 )
 
 type IBiz interface {

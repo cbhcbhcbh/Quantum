@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/controller/users"
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/store"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/users"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/code"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 	"github.com/gin-gonic/gin"
@@ -28,6 +28,7 @@ func RegisterApiRouters(engine *gin.Engine) error {
 		{
 			authGroup.POST("/login", uc.Login)
 			authGroup.POST("/registered", uc.Registered)
+			authGroup.POST("/sendEmail", uc.SendEmail)
 		}
 	}
 

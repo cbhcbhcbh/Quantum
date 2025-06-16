@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/store"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 	"github.com/cbhcbhcbh/Quantum/pkg/db"
 	"github.com/spf13/viper"
 )

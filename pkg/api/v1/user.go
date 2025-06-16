@@ -58,3 +58,8 @@ type UpdateUserRequest struct {
 	Email    *string `json:"email" valid:"email"`
 	Phone    *string `json:"phone" valid:"stringlength(11|11)"`
 }
+
+type SendEmailRequest struct {
+	Email     string `json:"email" validate:"required,email" `
+	EmailType int    `json:"email_type" validate:"gte=1,lte=2"`
+}

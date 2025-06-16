@@ -2,13 +2,16 @@ package users
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/store"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/services"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/date"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/enum"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/helpers"
+	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/model"
 	v1 "github.com/cbhcbhcbh/Quantum/pkg/api/v1"
 	"github.com/cbhcbhcbh/Quantum/pkg/auth"
@@ -22,6 +25,7 @@ import (
 type UserBiz interface {
 	Login(ctx *gin.Context, r *v1.LoginRequest) (*v1.LoginResponse, error)
 	Registered(ctx *gin.Context, r *v1.RegisterUserRequest) error
+	SendEmail(ctx *gin.Context, r *v1.SendEmailRequest) error
 }
 
 type userBiz struct {
@@ -98,4 +102,73 @@ func (b *userBiz) Registered(ctx *gin.Context, r *v1.RegisterUserRequest) error 
 
 	response.SuccessResponse().ToJson(ctx)
 	return nil
+}
+
+func (b *userBiz) SendEmail(ctx *gin.Context, r *v1.SendEmailRequest) error {
+	ok := b.ds.Users().IsTableFliedExits(ctx, "email", r.Email)
+
+	switch r.EmailType {
+
+	case services.REGISTERED_CODE:
+		if ok {
+			return errors.New("邮箱已经被注册了")
+		}
+
+	case services.RESET_PS_CODE:
+		if !ok {
+			return errors.New("邮箱未注册了")
+		}
+
+	}
+
+	emailService := services.NewEmailService()
+
+	code := helpers.CreateEmailCode()
+
+	html := fmt.Sprintf(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Im-Services邮件验证码</title>
+</head>
+<style>
+    .mail{
+        margin: 0 auto;
+        border-radius: 45px;
+        height: 400px;
+        padding: 10px;
+        background-color: #CC9933;
+        background: url("https://img-blog.csdnimg.cn/c32f12dfd48241babd35b15189dc5c78.png") no-repeat;
+    }
+    .code {
+        color: #f6512b;
+        font-weight: bold;
+        font-size: 30px;
+        padding: 2px;
+    }
+</style>
+<body>
+<div class="mail">
+    <h3>您好 ~ im-services应用账号!</h3>
+    <p>下面是您的验证码:</p>
+        <p class="code">%s</p>
+        <p>请注意查收!谢谢</p>
+</div>
+<h3>如果可以请给项目点个star～<a target="_blank" href="https://github.com/IM-Tools/Im-Services">项目地址</a> </h3>
+</body>
+</html>`, code)
+
+	subject := "欢迎使用～👏Im Services,这是一封邮箱验证码的邮件!🎉🎉🎉"
+
+	err := emailService.SendEmail(code, r.EmailType, r.Email, subject, html)
+	if err != nil {
+		log.C(ctx).Errorw("发送失败邮箱:" + r.Email + "错误日志:" + err.Error())
+		response.FailResponse(enum.ApiError, "邮件发送失败,请检查是否是可用邮箱").ToJson(ctx)
+		return err
+	}
+
+	response.SuccessResponse().ToJson(ctx)
+	return nil
+
 }

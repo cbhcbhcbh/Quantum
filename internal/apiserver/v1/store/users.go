@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/code"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/model"
@@ -16,6 +17,7 @@ type UsersStore interface {
 	List(ctx context.Context, offset, limit int) (int64, []*model.UsersM, error)
 	Delete(ctx context.Context, name string) error
 	CheckUserExist(ctx context.Context, name string, email string) (bool, error)
+	IsTableFliedExits(ctx context.Context, filed string, value string) bool
 }
 
 type users struct {
@@ -62,7 +64,7 @@ func (u *users) List(ctx context.Context, offset, limit int) (count int64, ret [
 }
 
 func (u *users) Delete(ctx context.Context, name string) error {
-	err := u.db.Where("name = ?", name).Delete(&model.UsersM{}).Error
+	err := u.db.WithContext(ctx).Where("name = ?", name).Delete(&model.UsersM{}).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
@@ -82,4 +84,11 @@ func (u *users) CheckUserExist(ctx context.Context, name string, email string) (
 	}
 
 	return false, nil
+}
+
+func (u *users) IsTableFliedExits(ctx context.Context, filed string, value string) bool {
+	var count int64
+	u.db.WithContext(ctx).Where(fmt.Sprintf("%s=?", filed), value).Count(&count)
+
+	return count > 0
 }

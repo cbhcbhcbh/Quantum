@@ -1,8 +1,8 @@
 package users
 
 import (
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/biz"
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/store"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 )
 
 type UserController struct {

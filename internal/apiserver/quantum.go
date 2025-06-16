@@ -14,6 +14,8 @@ func NewQuantumCommand() *cobra.Command {
 		Short: "Quantum is a CLI application",
 		Long:  `A CLI application for quantum computing tasks`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			config.InitRedis()
+
 			if err := config.InitStore(); err != nil {
 				return err
 			}

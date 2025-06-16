@@ -22,15 +22,16 @@ db:
 redis:
   host: 127.0.0.1
   port: 6379
-  username: ""
   password: ""
   db: 0
-  max-idle-connections: 10
-  max-open-connections: 100
-  max-connection-life-time: 10s
-  read-timeout: 3s
-  write-timeout: 3s
-  pool-timeout: 5s
-  min-idle-connections: 2
-  dial-timeout: 5s
-  enable-cluster: false
+  poll: 15
+  conn: 10
+
+mail:
+  driver: 'smtp'
+  host: 'smtp.gmail.com'
+  name: 'yourname@gmail.com'
+  password: 'your_gmail_app_password'
+  port: 465
+  encryption: 'ssl'
+  fromName: 'Im-Services'
