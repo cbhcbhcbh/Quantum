@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/cbhcbhcbh/Quantum/internal/middleware"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/code"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 	"github.com/cbhcbhcbh/Quantum/internal/service/handler"
@@ -20,7 +21,7 @@ func RegisterWsRouters(engine *gin.Engine) error {
 	})
 
 	// websocket routers
-	ws := engine.Group("/im")
+	ws := engine.Group("/im").Use(middleware.Auth()).Use(middleware.Cors())
 	{
 		ws.GET("/connect", WsService.Connect)
 	}
