@@ -20,7 +20,6 @@ func RegisterWsRouters(engine *gin.Engine) error {
 		code.OK.ToJson(c)
 	})
 
-	// websocket routers
 	ws := engine.Group("/im").Use(middleware.Auth()).Use(middleware.Cors())
 	{
 		ws.GET("/connect", WsService.Connect)
