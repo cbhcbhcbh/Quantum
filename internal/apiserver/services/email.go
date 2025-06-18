@@ -16,7 +16,7 @@ const (
 	RESET_PS_CODE   = 2
 )
 
-type EmailServiceInterface interface {
+type IEmailService interface {
 	SendEmail(code string, emailType int, email string, subject string, body string) error
 	getCacheFix(email string, emailType int) string
 	CheckCode(email string, code string, emailType int) bool

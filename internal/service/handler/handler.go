@@ -24,8 +24,9 @@ func (*WsService) Connect(ctx *gin.Context) {
 
 	id := ctx.GetInt64(known.XIdKey)
 
-	client := client.NewClient(id, conn)
+	wsClient := client.NewClient(id, conn)
+	client.Manager.Register <- wsClient
 
-	go client.Read()
-	go client.Write()
+	go wsClient.Read()
+	go wsClient.Write()
 }

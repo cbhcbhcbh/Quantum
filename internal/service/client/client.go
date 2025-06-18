@@ -15,7 +15,7 @@ type Client struct {
 	Mux  sync.RWMutex
 }
 
-type ClientInterface interface {
+type IClient interface {
 	Read()
 	Write()
 	Close()
@@ -30,13 +30,18 @@ func NewClient(id int64, conn *websocket.Conn) *Client {
 }
 
 func (c *Client) Read() {
-	defer c.Close()
+	defer func() {
+		Manager.Unregister <- c
+		c.Close()
+	}()
 
 	for {
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
 			break
 		}
+		// TODO: Add message validation and processing logic here
+		Manager.Broadcast <- msg
 		log.C(context.TODO()).Infow("Received message", "id", c.ID, "message", string(msg))
 	}
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/cbhcbhcbh/Quantum/internal/config"
 	"github.com/cbhcbhcbh/Quantum/internal/service/bootstrap"
+	"github.com/cbhcbhcbh/Quantum/internal/service/client"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,8 @@ func NewQuantumCommand() *cobra.Command {
 			if err := config.InitStore(); err != nil {
 				return err
 			}
+
+			go client.Manager.Start()
 
 			return nil
 		},
