@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
+	"github.com/cbhcbhcbh/Quantum/internal/pkg/message"
 	"github.com/gorilla/websocket"
 )
 
@@ -40,9 +41,15 @@ func (c *Client) Read() {
 		if err != nil {
 			break
 		}
-		// TODO: Add message validation and processing logic here
-		Manager.Broadcast <- msg
+
 		log.C(context.TODO()).Infow("Received message", "id", c.ID, "message", string(msg))
+
+		msgString, ackMsg, err := message.ValidationMsg(msg)
+
+		c.Conn.WriteMessage(websocket.TextMessage, []byte(ackMsg))
+		if err == nil {
+			Manager.Broadcast <- []byte(msgString)
+		}
 	}
 }
 
