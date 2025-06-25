@@ -1,10 +1,10 @@
 -- PostgreSQL version of IM tables
 
 -- ----------------------------
--- Table structure for im_friend_records
+-- Table structure for friend_records
 -- ----------------------------
-DROP TABLE IF EXISTS im_friend_records;
-CREATE TABLE im_friend_records (
+DROP TABLE IF EXISTS friend_records;
+CREATE TABLE friend_records (
   id SERIAL PRIMARY KEY,
   form_id INTEGER NOT NULL,
   to_id INTEGER NOT NULL,
@@ -14,10 +14,10 @@ CREATE TABLE im_friend_records (
 );
 
 -- ----------------------------
--- Table structure for im_friends
+-- Table structure for friends
 -- ----------------------------
-DROP TABLE IF EXISTS im_friends;
-CREATE TABLE im_friends (
+DROP TABLE IF EXISTS friends;
+CREATE TABLE friends (
   id SERIAL PRIMARY KEY,
   form_id INTEGER,
   to_id INTEGER,
@@ -30,10 +30,10 @@ CREATE TABLE im_friends (
 );
 
 -- ----------------------------
--- Table structure for im_group_messages
+-- Table structure for group_messages
 -- ----------------------------
-DROP TABLE IF EXISTS im_group_messages;
-CREATE TABLE im_group_messages (
+DROP TABLE IF EXISTS group_messages;
+CREATE TABLE group_messages (
   id SERIAL PRIMARY KEY,
   message JSON NOT NULL, -- message entity
   send_time BIGINT DEFAULT NULL, -- message send time
@@ -44,10 +44,10 @@ CREATE TABLE im_group_messages (
 );
 
 -- ----------------------------
--- Table structure for im_group_offline_messages
+-- Table structure for group_offline_messages
 -- ----------------------------
-DROP TABLE IF EXISTS im_group_offline_messages;
-CREATE TABLE im_group_offline_messages (
+DROP TABLE IF EXISTS group_offline_messages;
+CREATE TABLE group_offline_messages (
   id SERIAL PRIMARY KEY,
   message JSON DEFAULT NULL, -- message body
   send_time INTEGER DEFAULT NULL, -- message receive time
@@ -56,10 +56,10 @@ CREATE TABLE im_group_offline_messages (
 );
 
 -- ----------------------------
--- Table structure for im_group_user_messages
+-- Table structure for group_user_messages
 -- ----------------------------
-DROP TABLE IF EXISTS im_group_user_messages;
-CREATE TABLE im_group_user_messages (
+DROP TABLE IF EXISTS group_user_messages;
+CREATE TABLE group_user_messages (
   id SERIAL PRIMARY KEY,
   user_id INTEGER DEFAULT NULL,
   group_id INTEGER DEFAULT NULL,
@@ -67,10 +67,10 @@ CREATE TABLE im_group_user_messages (
 );
 
 -- ----------------------------
--- Table structure for im_group_users
+-- Table structure for group_users
 -- ----------------------------
-DROP TABLE IF EXISTS im_group_users;
-CREATE TABLE im_group_users (
+DROP TABLE IF EXISTS group_users;
+CREATE TABLE group_users (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT NULL,
@@ -81,10 +81,10 @@ CREATE TABLE im_group_users (
 );
 
 -- ----------------------------
--- Table structure for im_groups
+-- Table structure for groups
 -- ----------------------------
-DROP TABLE IF EXISTS im_groups;
-CREATE TABLE im_groups (
+DROP TABLE IF EXISTS groups;
+CREATE TABLE groups (
   id SERIAL PRIMARY KEY,
   user_id INTEGER DEFAULT NULL, -- creator
   name VARCHAR(255) DEFAULT NULL, -- group name
@@ -98,10 +98,10 @@ CREATE TABLE im_groups (
 );
 
 -- ----------------------------
--- Table structure for im_messages
+-- Table structure for messages
 -- ----------------------------
-DROP TABLE IF EXISTS im_messages;
-CREATE TABLE im_messages (
+DROP TABLE IF EXISTS messages;
+CREATE TABLE messages (
   id SERIAL PRIMARY KEY,
   msg VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT NULL,
@@ -114,10 +114,10 @@ CREATE TABLE im_messages (
 );
 
 -- ----------------------------
--- Table structure for im_offline_messages
+-- Table structure for offline_messages
 -- ----------------------------
-DROP TABLE IF EXISTS im_offline_messages;
-CREATE TABLE im_offline_messages (
+DROP TABLE IF EXISTS offline_messages;
+CREATE TABLE offline_messages (
   id SERIAL PRIMARY KEY,
   message JSON DEFAULT NULL, -- message body
   send_time INTEGER DEFAULT NULL, -- message receive time
@@ -126,10 +126,10 @@ CREATE TABLE im_offline_messages (
 );
 
 -- ----------------------------
--- Table structure for im_sessions
+-- Table structure for sessions
 -- ----------------------------
-DROP TABLE IF EXISTS im_sessions;
-CREATE TABLE im_sessions (
+DROP TABLE IF EXISTS sessions;
+CREATE TABLE sessions (
   id SERIAL PRIMARY KEY,
   form_id INTEGER NOT NULL,
   to_id INTEGER NOT NULL,
@@ -145,10 +145,10 @@ CREATE TABLE im_sessions (
 );
 
 -- ----------------------------
--- Table structure for im_users
+-- Table structure for users
 -- ----------------------------
-DROP TABLE IF EXISTS im_users;
-CREATE TABLE im_users (
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
   id BIGSERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) DEFAULT NULL,
