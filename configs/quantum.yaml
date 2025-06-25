@@ -35,3 +35,7 @@ mail:
   port: 465
   encryption: 'ssl'
   fromName: 'Im-Services'
+
+kafka:
+  host: 127.0.0.1
+  port: 9092

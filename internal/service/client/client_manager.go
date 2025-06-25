@@ -1,9 +1,12 @@
 package client
 
 import (
+	"context"
+	"encoding/json"
 	"sync"
 
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
+	"github.com/cbhcbhcbh/Quantum/internal/pkg/message"
 )
 
 type ClientManager struct {
@@ -44,7 +47,8 @@ func (cm *ClientManager) SetClient(client *Client) {
 }
 
 func (cm *ClientManager) GetClient(id int64) (*Client, bool) {
-	cm.Register <- &Client{ID: id}
+	cm.mu.RLock()
+	defer cm.mu.RUnlock()
 	client, exists := cm.ClientMap[id]
 	return client, exists
 }
@@ -62,19 +66,42 @@ func (cm *ClientManager) Start() {
 		select {
 		case client := <-cm.Register:
 			cm.SetClient(client)
-			log.C(nil).Infow("Client registered", "id", client.ID)
+			log.C(context.TODO()).Infow("Client registered", "id", client.ID)
 
 		case client := <-cm.Unregister:
 			cm.RemoveClient(client.ID)
-			log.C(nil).Infow("Client unregistered", "id", client.ID)
+			log.C(context.TODO()).Infow("Client unregistered", "id", client.ID)
 
-		case message := <-cm.Broadcast:
-			cm.LaunchMessage(message)
+		case msg := <-cm.Broadcast:
+			cm.LaunchMessage(msg)
 		}
 	}
 }
 
 // TODO: LaunchMessage sends a message to all registered clients.
-func (cm *ClientManager) LaunchMessage(message []byte) {
+func (cm *ClientManager) LaunchMessage(msg []byte) {
+	var wsMsg message.WsMessage
+
+	if err := json.Unmarshal(msg, &wsMsg); err != nil {
+		return
+	}
+
+	channelType := wsMsg.ChannelType
+	ReceiveId := wsMsg.ToID
+
+	if channelType == message.ChannelTypePrivate || channelType == message.ChannelTypeGroup {
+
+		if client, exists := cm.GetClient(ReceiveId); exists {
+			// TODO: Perisist the message to the database or handle it accordingly
+			log.C(context.TODO()).Infow("Sending message to client", "id", ReceiveId, "message", wsMsg.Message)
+			client.Send <- msg
+		} else {
+			log.C(context.TODO()).Infow("Client not found", "id", ReceiveId)
+			return
+		}
+
+	} else {
+		// TODO: Handle broadcast messages
+	}
 
 }

@@ -8,6 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	ChannelTypePrivate   = 1 // Private channel type
+	ChannelTypeGroup     = 2 // Group channel type
+	ChannelTypeBroadcast = 3 // Broadcast channel type
+)
+
 // WsMessage represents the structure of a WebSocket message exchanged between client and server.
 type WsMessage struct {
 	MsgId       string `json:"msg_id"`        // Unique identifier for the message
