@@ -48,7 +48,7 @@ func (c *Client) Read() {
 
 		c.Conn.WriteMessage(websocket.TextMessage, []byte(ackMsg))
 		if err == nil {
-			Manager.Broadcast <- []byte(msgString)
+			Manager.BroadcastChannel <- []byte(msgString)
 		}
 	}
 }

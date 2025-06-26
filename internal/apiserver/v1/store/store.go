@@ -14,6 +14,13 @@ var (
 type IStore interface {
 	DB() *gorm.DB
 	Users() UsersStore
+	GroupMessage() GroupMessageStore
+	GroupOfflineMessage() GroupOfflineMessageStore
+	GroupUserMessage() GroupUserMessageStore
+	Message() MessageStore
+	OfflineMessage() OfflineMessageStore
+	Group() GroupStore
+	GroupUser() GroupUserStore
 }
 
 type datastore struct {
@@ -38,4 +45,32 @@ func (ds *datastore) DB() *gorm.DB {
 
 func (ds *datastore) Users() UsersStore {
 	return NewUsers(ds.db)
+}
+
+func (ds *datastore) GroupMessage() GroupMessageStore {
+	return NewGroupMessage(ds.db)
+}
+
+func (ds *datastore) GroupOfflineMessage() GroupOfflineMessageStore {
+	return NewGroupOfflineMessage(ds.db)
+}
+
+func (ds *datastore) GroupUserMessage() GroupUserMessageStore {
+	return NewGroupUserMessage(ds.db)
+}
+
+func (ds *datastore) Message() MessageStore {
+	return NewMessage(ds.db)
+}
+
+func (ds *datastore) OfflineMessage() OfflineMessageStore {
+	return NewOfflineMessage(ds.db)
+}
+
+func (ds *datastore) Group() GroupStore {
+	return NewGroup(ds.db)
+}
+
+func (ds *datastore) GroupUser() GroupUserStore {
+	return NewGroupUser(ds.db)
 }

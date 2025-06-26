@@ -75,6 +75,7 @@ CREATE TABLE group_users (
   user_id INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT NULL,
   group_id INTEGER DEFAULT NULL,
+  group_type SMALLINT DEFAULT 0, -- 0 group 1 broadcast
   remark VARCHAR(255) DEFAULT NULL,
   avatar VARCHAR(255) DEFAULT NULL,
   name VARCHAR(255) DEFAULT NULL
@@ -86,6 +87,7 @@ CREATE TABLE group_users (
 DROP TABLE IF EXISTS groups;
 CREATE TABLE groups (
   id SERIAL PRIMARY KEY,
+  group_type SMALLINT DEFAULT 0, -- 0 group 1 broadcast
   user_id INTEGER DEFAULT NULL, -- creator
   name VARCHAR(255) DEFAULT NULL, -- group name
   created_at TIMESTAMP DEFAULT NULL, -- created time

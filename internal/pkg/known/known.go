@@ -11,3 +11,13 @@ const (
 
 	XEmailKey = "X-Email"
 )
+
+// Kafka topic
+var (
+	OfflinePrivateTopic = "offline_private_message"
+	OfflineGroupTopic   = "offline_group_message"
+
+	ChannelOfflineTopic      = "channel-offline-private"
+	ChannelGroupOfflineTopic = "channel-offline-group"
+	ChannelNodeTopic         = "channel-node"
+)

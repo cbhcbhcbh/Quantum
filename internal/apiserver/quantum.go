@@ -17,6 +17,8 @@ func NewQuantumCommand() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			config.InitRedis()
 
+			config.InitKafkaProducer()
+
 			if err := config.InitStore(); err != nil {
 				return err
 			}

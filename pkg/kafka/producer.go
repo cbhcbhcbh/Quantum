@@ -7,6 +7,10 @@ import (
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 )
 
+var (
+	P *Producer
+)
+
 type KafkaProducer struct {
 	Affress []string
 	Topic   string
@@ -18,7 +22,7 @@ type Producer struct {
 	producer sarama.SyncProducer
 }
 
-func NewProducer(ctx context.Context, addr []string) *Producer {
+func NewProducer(addr []string) *Producer {
 	p := Producer{}
 	p.config = sarama.NewConfig()
 	p.config.Producer.Return.Successes = true
@@ -29,7 +33,7 @@ func NewProducer(ctx context.Context, addr []string) *Producer {
 
 	producer, err := sarama.NewSyncProducer(p.addr, p.config)
 	if err != nil {
-		log.C(ctx).Errorw("Failed to start Sarama producer", "error", err)
+		log.C(context.Background()).Errorw("Failed to start Sarama producer", "error", err)
 		return nil
 	}
 	p.producer = producer
