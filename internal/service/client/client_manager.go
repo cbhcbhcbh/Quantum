@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/known"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/message"
+	"github.com/cbhcbhcbh/Quantum/internal/pkg/model"
 	"github.com/cbhcbhcbh/Quantum/pkg/kafka"
+	"github.com/gorilla/websocket"
 )
 
 type ClientManager struct {
@@ -72,33 +75,37 @@ func (cm *ClientManager) RemoveClient(id int64) {
 }
 
 func (cm *ClientManager) Start() {
+	ctx := context.Background()
+
 	for {
 		select {
 		case client := <-cm.Register:
 			cm.SetClient(client)
-			log.C(context.TODO()).Infow("Client registered", "id", client.ID)
+			cm.PullPrivateOfflineMessage(ctx, client)
+			cm.ConsumingGroupOfflineMessages(ctx, client)
+			log.C(ctx).Infow("Client registered", "id", client.ID)
 
 		case client := <-cm.Unregister:
 			cm.RemoveClient(client.ID)
-			log.C(context.TODO()).Infow("Client unregistered", "id", client.ID)
+			log.C(ctx).Infow("Client unregistered", "id", client.ID)
 
 		case msg := <-cm.PrivateChannel:
-			cm.LaunchPrivateMessage(msg)
+			cm.LaunchPrivateMessage(ctx, msg)
 
 		case msg := <-cm.BroadcastChannel:
-			cm.LaunchBroadcastMessage(msg)
+			cm.LaunchBroadcastMessage(ctx, msg)
 
 		case msg := <-cm.GroupChannel:
-			cm.LaunchGroupMessage(msg)
+			cm.LaunchGroupMessage(ctx, msg)
 		}
 	}
 }
 
-func (cm *ClientManager) LaunchPrivateMessage(msg []byte) {
-	log.C(context.TODO()).Infow("Launching private message", "message", string(msg))
+func (cm *ClientManager) LaunchPrivateMessage(ctx context.Context, msg []byte) {
+	log.C(ctx).Infow("Launching private message", "message", string(msg))
 	var wsMsg message.WsMessage
 	if err := json.Unmarshal(msg, &wsMsg); err != nil {
-		log.C(context.TODO()).Errorw("Failed to unmarshal private message", "error", err)
+		log.C(ctx).Errorw("Failed to unmarshal private message", "error", err)
 		return
 	}
 
@@ -109,32 +116,32 @@ func (cm *ClientManager) LaunchPrivateMessage(msg []byte) {
 	} else {
 		_, _, err := kafka.P.Push(msg, strconv.FormatInt(receiveId, 10), known.OfflinePrivateTopic)
 		if err != nil {
-			log.C(context.TODO()).Errorw("Failed to push private message to Kafka", "error", err)
+			log.C(ctx).Errorw("Failed to push private message to Kafka", "error", err)
 		} else {
-			log.C(context.TODO()).Infow("private message pushed to Kafka", "user_id", receiveId)
+			log.C(ctx).Infow("private message pushed to Kafka", "user_id", receiveId)
 		}
 	}
 
 }
 
-func (cm *ClientManager) LaunchBroadcastMessage(msg []byte) {
+func (cm *ClientManager) LaunchBroadcastMessage(ctx context.Context, msg []byte) {
 	// TODO: Implement broadcast message handling
 }
 
-func (cm *ClientManager) LaunchGroupMessage(msg []byte) {
-	log.C(context.TODO()).Infow("Launching group message", "message", string(msg))
+func (cm *ClientManager) LaunchGroupMessage(ctx context.Context, msg []byte) {
+	log.C(ctx).Infow("Launching group message", "message", string(msg))
 	var wsMsg message.WsMessage
 	if err := json.Unmarshal(msg, &wsMsg); err != nil {
-		log.C(context.TODO()).Errorw("Failed to unmarshal group message", "error", err)
+		log.C(ctx).Errorw("Failed to unmarshal group message", "error", err)
 		return
 	}
 
 	groupId := wsMsg.ToID
 	channelType := wsMsg.ChannelType
 
-	groupUser, err := store.S.GroupUser().List(context.TODO(), groupId)
+	groupUser, err := store.S.GroupUser().List(ctx, groupId)
 	if err != nil {
-		log.C(context.TODO()).Errorw("Failed to get group users", "error", err)
+		log.C(ctx).Errorw("Failed to get group users", "error", err)
 		return
 	}
 
@@ -145,10 +152,69 @@ func (cm *ClientManager) LaunchGroupMessage(msg []byte) {
 		} else {
 			_, _, err := kafka.P.Push(msg, strconv.Itoa(channelType), known.OfflineGroupTopic)
 			if err != nil {
-				log.C(context.TODO()).Errorw("Failed to push group message to Kafka", "error", err)
+				log.C(ctx).Errorw("Failed to push group message to Kafka", "error", err)
 			} else {
-				log.C(context.TODO()).Infow("Group message pushed to Kafka", "group_id", groupId, "user_id", receiveId)
+				log.C(ctx).Infow("Group message pushed to Kafka", "group_id", groupId, "user_id", receiveId)
 			}
 		}
+	}
+}
+
+func (cm *ClientManager) PullPrivateOfflineMessage(ctx context.Context, client *Client) {
+	pullAndPushOfflineMessages(
+		ctx,
+		client,
+		func(ctx context.Context, start, end int64, status int16) ([]*model.OfflineMessageM, error) {
+			return store.S.OfflineMessage().ListByTimeRangeAndStatus(ctx, start, end, status)
+		},
+		store.S.OfflineMessage().UpdateStatuByID,
+		func(m *model.OfflineMessageM) ([]byte, int64) {
+			return []byte(m.Message), m.ID
+		},
+	)
+}
+
+func (cm *ClientManager) ConsumingGroupOfflineMessages(ctx context.Context, client *Client) {
+	pullAndPushOfflineMessages(
+		ctx,
+		client,
+		func(ctx context.Context, start, end int64, status int16) ([]*model.GroupOfflineMessageM, error) {
+			return store.S.GroupOfflineMessage().ListByTimeRangeAndStatus(ctx, start, end, status)
+		},
+		store.S.GroupOfflineMessage().UpdateStatuByID,
+		func(m *model.GroupOfflineMessageM) ([]byte, int64) {
+			return []byte(m.Message), m.ID
+		},
+	)
+}
+
+// TODO: 把这个函数重新放个地方
+func pullAndPushOfflineMessages[T any](
+	ctx context.Context,
+	client *Client,
+	listFunc func(context.Context, int64, int64, int16) ([]*T, error),
+	updateFunc func(context.Context, []int64, int16) error,
+	getMsg func(*T) ([]byte, int64),
+) {
+	nowTime := time.Now()
+	lastTime := nowTime.Add(-15 * 24 * time.Hour) // 15 days ago
+
+	var ids []int64
+	var messages []*T
+	var err error
+
+	if messages, err = listFunc(ctx, lastTime.Unix(), nowTime.Unix(), 0); err != nil {
+		log.C(ctx).Errorw("Pull offline message pushed to user", "user_id", client.ID, "error", err)
+		return
+	}
+
+	for _, message := range messages {
+		msgBytes, id := getMsg(message)
+		_ = client.Conn.WriteMessage(websocket.TextMessage, msgBytes)
+		ids = append(ids, id)
+	}
+
+	if len(ids) > 0 {
+		_ = updateFunc(ctx, ids, 1)
 	}
 }

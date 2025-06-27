@@ -10,6 +10,7 @@ CREATE TABLE friend_records (
   to_id INTEGER NOT NULL,
   status SMALLINT DEFAULT NULL, -- 0 pending 1 accepted 2 rejected
   created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
   information VARCHAR(255) DEFAULT NULL -- request info
 );
 
@@ -22,11 +23,11 @@ CREATE TABLE friends (
   form_id INTEGER,
   to_id INTEGER,
   created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
   note VARCHAR(255) DEFAULT NULL,
   top_time TIMESTAMP DEFAULT NULL,
   status SMALLINT DEFAULT 0, -- 0 not pinned 1 pinned
   uid VARCHAR(255) NOT NULL,
-  updated_at TIMESTAMP DEFAULT NULL
 );
 
 -- ----------------------------
@@ -41,6 +42,8 @@ CREATE TABLE group_messages (
   client_message_id BIGINT DEFAULT NULL, -- client message id
   form_id INTEGER DEFAULT NULL, -- sender id
   group_id INTEGER DEFAULT NULL -- group id
+  created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
 );
 
 -- ----------------------------
@@ -53,6 +56,8 @@ CREATE TABLE group_offline_messages (
   send_time INTEGER DEFAULT NULL, -- message receive time
   status SMALLINT DEFAULT NULL, -- message status 0 not pushed 1 pushed
   receive_id INTEGER DEFAULT NULL -- receiver id
+  created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
 );
 
 -- ----------------------------
@@ -64,6 +69,8 @@ CREATE TABLE group_user_messages (
   user_id INTEGER DEFAULT NULL,
   group_id INTEGER DEFAULT NULL,
   status SMALLINT DEFAULT 0 -- 0 unread 1 read
+  created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
 );
 
 -- ----------------------------
@@ -74,6 +81,7 @@ CREATE TABLE group_users (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
   group_id INTEGER DEFAULT NULL,
   group_type SMALLINT DEFAULT 0, -- 0 group 1 broadcast
   remark VARCHAR(255) DEFAULT NULL,
@@ -90,7 +98,8 @@ CREATE TABLE groups (
   group_type SMALLINT DEFAULT 0, -- 0 group 1 broadcast
   user_id INTEGER DEFAULT NULL, -- creator
   name VARCHAR(255) DEFAULT NULL, -- group name
-  created_at TIMESTAMP DEFAULT NULL, -- created time
+  created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
   info VARCHAR(255) DEFAULT NULL, -- group description
   avatar VARCHAR(255) DEFAULT NULL, -- group avatar
   password VARCHAR(255) DEFAULT NULL,
@@ -107,6 +116,7 @@ CREATE TABLE messages (
   id SERIAL PRIMARY KEY,
   msg VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
   form_id INTEGER DEFAULT NULL,
   to_id INTEGER DEFAULT NULL,
   is_read SMALLINT DEFAULT NULL, -- 0 unread 1 read
@@ -125,6 +135,8 @@ CREATE TABLE offline_messages (
   send_time INTEGER DEFAULT NULL, -- message receive time
   status SMALLINT DEFAULT NULL, -- message status 0 not pushed 1 pushed
   receive_id INTEGER DEFAULT NULL
+  created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
 );
 
 -- ----------------------------
@@ -135,7 +147,8 @@ CREATE TABLE sessions (
   id SERIAL PRIMARY KEY,
   form_id INTEGER NOT NULL,
   to_id INTEGER NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NULL,
+  updated_at TIMESTAMP DEFAULT NULL,
   top_status SMALLINT DEFAULT 0, -- 0 no 1 yes
   top_time TIMESTAMP DEFAULT NULL,
   note VARCHAR(255) DEFAULT NULL, -- remark
