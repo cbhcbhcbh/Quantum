@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cbhcbhcbh/Quantum/internal/apiserver/services"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/date"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/enum"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/helpers"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/model"
+	"github.com/cbhcbhcbh/Quantum/internal/service/email"
 	v1 "github.com/cbhcbhcbh/Quantum/pkg/api/v1"
 	"github.com/cbhcbhcbh/Quantum/pkg/auth"
 	"github.com/cbhcbhcbh/Quantum/pkg/jwt"
@@ -109,19 +109,19 @@ func (b *userBiz) SendEmail(ctx *gin.Context, r *v1.SendEmailRequest) error {
 
 	switch r.EmailType {
 
-	case services.REGISTERED_CODE:
+	case email.REGISTERED_CODE:
 		if ok {
 			return errors.New("邮箱已经被注册了")
 		}
 
-	case services.RESET_PS_CODE:
+	case email.RESET_PS_CODE:
 		if !ok {
 			return errors.New("邮箱未注册了")
 		}
 
 	}
 
-	emailService := services.NewEmailService()
+	emailService := email.NewEmailService()
 
 	code := helpers.CreateEmailCode()
 

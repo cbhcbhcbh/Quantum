@@ -43,28 +43,28 @@ func NewConsumer(ctx context.Context, addr []string, topic string) *Consumer {
 	return &c
 }
 
-func (c *Consumer) Consume(ctx context.Context, topic string, partition int32, handler func(msg *sarama.ConsumerMessage)) {
-    pc, err := c.Consumer.ConsumePartition(topic, partition, sarama.OffsetNewest)
-    if err != nil {
-        log.C(ctx).Errorw("Failed to start partition consumer", "topic", topic, "partition", partition, "error", err)
-        return
-    }
-    defer pc.Close()
+func (c *Consumer) Consume(ctx context.Context, topic string, partition int32, handler func(ctx context.Context, msg *sarama.ConsumerMessage)) {
+	pc, err := c.Consumer.ConsumePartition(topic, partition, sarama.OffsetNewest)
+	if err != nil {
+		log.C(ctx).Errorw("Failed to start partition consumer", "topic", topic, "partition", partition, "error", err)
+		return
+	}
+	defer pc.Close()
 
-    for {
-        select {
-        case msg := <-pc.Messages():
-            if msg != nil {
-                handler(msg)
-            }
-        case err := <-pc.Errors():
-            if err != nil {
-                log.C(ctx).Errorw("Partition consumer error", "topic", topic, "partition", partition, "error", err)
-            }
-        case <-ctx.Done():
-            return
-        }
-    }
+	for {
+		select {
+		case msg := <-pc.Messages():
+			if msg != nil {
+				handler(ctx, msg)
+			}
+		case err := <-pc.Errors():
+			if err != nil {
+				log.C(ctx).Errorw("Partition consumer error", "topic", topic, "partition", partition, "error", err)
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 func (c *Consumer) Close(ctx context.Context) {

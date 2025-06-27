@@ -24,6 +24,7 @@ func NewQuantumCommand() *cobra.Command {
 			}
 
 			go client.Manager.Start()
+			go config.StartConsumer()
 
 			return nil
 		},

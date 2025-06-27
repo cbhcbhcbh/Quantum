@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"sync"
 
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
@@ -94,7 +95,26 @@ func (cm *ClientManager) Start() {
 }
 
 func (cm *ClientManager) LaunchPrivateMessage(msg []byte) {
-	// TODO: Implement private message handling
+	log.C(context.TODO()).Infow("Launching private message", "message", string(msg))
+	var wsMsg message.WsMessage
+	if err := json.Unmarshal(msg, &wsMsg); err != nil {
+		log.C(context.TODO()).Errorw("Failed to unmarshal private message", "error", err)
+		return
+	}
+
+	receiveId := wsMsg.ToID
+
+	if client, ok := cm.ClientMap[receiveId]; ok {
+		client.Send <- msg
+	} else {
+		_, _, err := kafka.P.Push(msg, strconv.FormatInt(receiveId, 10), known.OfflinePrivateTopic)
+		if err != nil {
+			log.C(context.TODO()).Errorw("Failed to push private message to Kafka", "error", err)
+		} else {
+			log.C(context.TODO()).Infow("private message pushed to Kafka", "user_id", receiveId)
+		}
+	}
+
 }
 
 func (cm *ClientManager) LaunchBroadcastMessage(msg []byte) {
@@ -109,10 +129,10 @@ func (cm *ClientManager) LaunchGroupMessage(msg []byte) {
 		return
 	}
 
-	group_Id := wsMsg.ToID
+	groupId := wsMsg.ToID
 	channelType := wsMsg.ChannelType
 
-	groupUser, err := store.S.GroupUser().List(context.TODO(), group_Id)
+	groupUser, err := store.S.GroupUser().List(context.TODO(), groupId)
 	if err != nil {
 		log.C(context.TODO()).Errorw("Failed to get group users", "error", err)
 		return
@@ -123,11 +143,11 @@ func (cm *ClientManager) LaunchGroupMessage(msg []byte) {
 		if client, ok := cm.ClientMap[receiveId]; ok {
 			client.Send <- msg
 		} else {
-			_, _, err := kafka.P.Push(msg, string(channelType), known.OfflineGroupTopic)
+			_, _, err := kafka.P.Push(msg, strconv.Itoa(channelType), known.OfflineGroupTopic)
 			if err != nil {
 				log.C(context.TODO()).Errorw("Failed to push group message to Kafka", "error", err)
 			} else {
-				log.C(context.TODO()).Infow("Group message pushed to Kafka", "group_id", group_Id, "user_id", receiveId)
+				log.C(context.TODO()).Infow("Group message pushed to Kafka", "group_id", groupId, "user_id", receiveId)
 			}
 		}
 	}
