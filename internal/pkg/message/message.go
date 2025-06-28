@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/date"
+	"github.com/cbhcbhcbh/Quantum/internal/pkg/enum"
 	"github.com/google/uuid"
 )
 
@@ -35,7 +36,15 @@ type AckMessage struct {
 	MsgClientId int64  `json:"msg_client_id"` // Client-generated message ID for tracking
 }
 
-func ValidationMsg(msg []byte) (string, string, error) {
+const (
+	ERROR     = 0
+	PRIVATE   = 1
+	GROUP     = 2
+	BROADCAST = 3
+	PING      = 4
+)
+
+func ValidationMsg(msg []byte) ([]byte, []byte, int, error) {
 	var wsMsg WsMessage
 	var ackMsg AckMessage
 	var err error
@@ -48,7 +57,7 @@ func ValidationMsg(msg []byte) (string, string, error) {
 			Message:     "empty message",
 		}
 		ackMsgByte, _ := json.Marshal(ackMsg)
-		return `{"code":500,"message":"请勿发送空消息"}`, string(ackMsgByte), fmt.Errorf("empty message")
+		return []byte(`{"code":500,"message":"请勿发送空消息"}`), ackMsgByte, ERROR, fmt.Errorf("empty message")
 	}
 
 	if err = json.Unmarshal(msg, &wsMsg); err != nil {
@@ -59,11 +68,16 @@ func ValidationMsg(msg []byte) (string, string, error) {
 			Message:     "invalid message format",
 		}
 		ackMsgByte, _ := json.Marshal(ackMsg)
-		return `{"code":500,"message":"消息格式错误"}`, string(ackMsgByte), fmt.Errorf("message unmarshal error: %v", err)
+		return []byte(`{"code":500,"message":"消息格式错误"}`), ackMsgByte, ERROR, fmt.Errorf("message unmarshal error: %v", err)
 	}
 
 	wsMsg.MsgId = uuid.New().String()
 	wsMsg.SendTime = date.TimeUnix()
+	msgCode := wsMsg.MsgCode
+
+	if msgCode == enum.WsPing {
+		return []byte(`{"code":1004,"message":"ping"}`), nil, PING, nil
+	}
 
 	ackMsg = AckMessage{
 		MsgId:       wsMsg.MsgId,
@@ -78,8 +92,8 @@ func ValidationMsg(msg []byte) (string, string, error) {
 		ackMsg.MsgCode = 500
 		ackMsg.Message = "json marshal error"
 		ackMsgByte, _ = json.Marshal(ackMsg)
-		return "", string(ackMsgByte), fmt.Errorf("json marshal error")
+		return []byte(`{"code":500,"message":"消息解析失败"}`), ackMsgByte, ERROR, fmt.Errorf("json marshal error")
 	}
 
-	return string(msgByte), string(ackMsgByte), nil
+	return msgByte, ackMsgByte, wsMsg.ChannelType, nil
 }

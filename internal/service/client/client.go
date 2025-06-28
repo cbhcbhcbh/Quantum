@@ -30,7 +30,10 @@ func NewClient(id int64, conn *websocket.Conn) *Client {
 	}
 }
 
+// TODO: Refrator Client Read & Write Method
 func (c *Client) Read() {
+	ctx := context.Background()
+
 	defer func() {
 		Manager.Unregister <- c
 		c.Close()
@@ -39,37 +42,52 @@ func (c *Client) Read() {
 	for {
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
+			Manager.Unregister <- c
+			c.Close()
 			break
 		}
 
-		log.C(context.TODO()).Infow("Received message", "id", c.ID, "message", string(msg))
+		log.C(ctx).Infow("Received message", "id", c.ID, "message", string(msg))
 
-		msgString, ackMsg, err := message.ValidationMsg(msg)
+		msgByte, ackMsg, channel, err := message.ValidationMsg(msg)
 
-		c.Conn.WriteMessage(websocket.TextMessage, []byte(ackMsg))
-		if err == nil {
-			Manager.BroadcastChannel <- []byte(msgString)
+		if err != nil {
+			log.C(ctx).Errorw("Message validation error", "id", c.ID, "error", err)
+			_ = c.Conn.WriteMessage(websocket.TextMessage, msgByte)
+		} else {
+			switch channel {
+			case message.PRIVATE:
+				_ = c.Conn.WriteMessage(websocket.TextMessage, ackMsg)
+				Manager.PrivateChannel <- msgByte
+			case message.GROUP:
+				_ = c.Conn.WriteMessage(websocket.TextMessage, ackMsg)
+				Manager.GroupChannel <- msgByte
+			case message.BROADCAST:
+				_ = c.Conn.WriteMessage(websocket.TextMessage, ackMsg)
+				Manager.BroadcastChannel <- msgByte
+			case message.PING:
+				_ = c.Conn.WriteMessage(websocket.TextMessage, ackMsg)
+			default:
+				log.C(ctx).Infow("Unknown channel type", "id", c.ID, "channel", channel)
+			}
 		}
 	}
 }
 
 func (c *Client) Write() {
+	ctx := context.Background()
+
 	defer c.Close()
 
-	for {
-		select {
-		case msg, ok := <-c.Send:
-			if !ok {
-				_ = c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-			err := c.Conn.WriteMessage(websocket.TextMessage, msg)
-			if err != nil {
-				log.C(context.TODO()).Errorw("Error writing message", "id", c.ID, "error", err)
-				return
-			}
+	for msg := range c.Send {
+		err := c.Conn.WriteMessage(websocket.TextMessage, msg)
+		if err != nil {
+			log.C(ctx).Errorw("Error writing message", "id", c.ID, "error", err)
+			return
 		}
 	}
+
+	_ = c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 }
 
 func (c *Client) Close() {
