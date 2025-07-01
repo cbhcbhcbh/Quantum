@@ -21,6 +21,7 @@ type IStore interface {
 	OfflineMessage() OfflineMessageStore
 	Group() GroupStore
 	GroupUser() GroupUserStore
+	Friends() FriendsStore
 }
 
 type datastore struct {
@@ -73,4 +74,8 @@ func (ds *datastore) Group() GroupStore {
 
 func (ds *datastore) GroupUser() GroupUserStore {
 	return NewGroupUser(ds.db)
+}
+
+func (ds *datastore) Friends() FriendsStore {
+	return NewFriends(ds.db)
 }

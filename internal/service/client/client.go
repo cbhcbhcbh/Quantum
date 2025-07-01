@@ -30,7 +30,6 @@ func NewClient(id int64, conn *websocket.Conn) *Client {
 	}
 }
 
-// TODO: Refrator Client Read & Write Method
 func (c *Client) Read() {
 	ctx := context.Background()
 

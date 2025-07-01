@@ -63,3 +63,20 @@ type SendEmailRequest struct {
 	Email     string `json:"email" validate:"required,email" `
 	EmailType int    `json:"email_type" validate:"gte=1,lte=2"`
 }
+
+type Person struct {
+	ID string `uri:"id" binding:"required"`
+}
+
+type UserDetails struct {
+	ID            int64  `json:"id" validate:"required"`
+	Name          string `json:"name" validate:"required,min=1,max=255"`
+	Email         string `json:"email" validate:"omitempty,email"`
+	Avatar        string `json:"avatar" validate:"omitempty,url"`
+	Status        int8   `json:"status" validate:"omitempty,oneof=0 1"`
+	Bio           string `json:"bio" validate:"omitempty,max=255"`
+	Sex           int8   `json:"sex" validate:"omitempty,oneof=0 1 2"`
+	Age           int    `json:"age" validate:"omitempty,gte=0,lte=150"`
+	LastLoginTime string `json:"last_login_time" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
+	Uid           string `json:"uid" validate:"omitempty"`
+}

@@ -1,6 +1,8 @@
 package router
 
 import (
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/friends"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/group"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/users"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 	"github.com/cbhcbhcbh/Quantum/internal/middleware"
@@ -10,6 +12,9 @@ import (
 )
 
 func RegisterApiRouters(engine *gin.Engine) error {
+
+	engine.Use(middleware.Cors())
+
 	engine.NoRoute(func(c *gin.Context) {
 		code.ErrPageNotFound.ToJson(c)
 	})
@@ -21,8 +26,9 @@ func RegisterApiRouters(engine *gin.Engine) error {
 	})
 
 	uc := users.New(store.S)
+	fc := friends.New(store.S)
+	gc := group.New(store.S)
 
-	// api routers
 	api := engine.Group("/api")
 	{
 		authGroup := api.Group("/auth")
@@ -34,7 +40,20 @@ func RegisterApiRouters(engine *gin.Engine) error {
 
 		api.Use(middleware.Auth())
 		{
-			// TODO: Add more authenticated user routes as needed
+			api.GET("/user/:id", uc.Info)
+			api.GET("/friend/list", fc.AddressList)
+			api.GET("/group/list", gc.AddressList)
+
+			// TODO: Implement session management endpoints
+			
+
+			// TODO: Implement friend management endpoints
+
+			// TODO: Implement message endpoints
+
+			// TODO: Implement group endpoints
+
+			// TODO: Implement file upload endpoint
 		}
 	}
 

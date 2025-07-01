@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
@@ -26,6 +27,7 @@ type UserBiz interface {
 	Login(ctx *gin.Context, r *v1.LoginRequest) (*v1.LoginResponse, error)
 	Registered(ctx *gin.Context, r *v1.RegisterUserRequest) error
 	SendEmail(ctx *gin.Context, r *v1.SendEmailRequest) error
+	GetUserInfo(ctx *gin.Context, r *v1.Person) (*v1.UserDetails, error)
 }
 
 type userBiz struct {
@@ -42,7 +44,7 @@ func New(ds store.IStore) UserBiz {
 func (b *userBiz) Login(ctx *gin.Context, r *v1.LoginRequest) (*v1.LoginResponse, error) {
 	c := ctx.Request.Context()
 
-	user, err := b.ds.Users().Get(c, r.Name)
+	user, err := b.ds.Users().GetByName(c, r.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -171,4 +173,27 @@ func (b *userBiz) SendEmail(ctx *gin.Context, r *v1.SendEmailRequest) error {
 	response.SuccessResponse().ToJson(ctx)
 	return nil
 
+}
+
+func (b *userBiz) GetUserInfo(ctx *gin.Context, r *v1.Person) (*v1.UserDetails, error) {
+	c := ctx.Request.Context()
+
+	id, _ := strconv.ParseInt(r.ID, 10, 64)
+	user, err := b.ds.Users().GetById(c, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.UserDetails{
+		ID:            user.ID,
+		Uid:           user.Uid,
+		Name:          user.Name,
+		Avatar:        user.Avatar,
+		Email:         user.Email,
+		Status:        user.Status,
+		Bio:           user.Bio,
+		Sex:           user.Sex,
+		Age:           user.Age,
+		LastLoginTime: user.LastLoginTime,
+	}, nil
 }

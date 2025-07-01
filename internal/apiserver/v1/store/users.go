@@ -12,7 +12,8 @@ import (
 
 type UsersStore interface {
 	Create(ctx context.Context, user *model.UsersM) error
-	Get(ctx context.Context, name string) (*model.UsersM, error)
+	GetByName(ctx context.Context, name string) (*model.UsersM, error)
+	GetById(ctx context.Context, id int64) (*model.UsersM, error)
 	Update(ctx context.Context, user *model.UsersM) error
 	List(ctx context.Context, offset, limit int) (int64, []*model.UsersM, error)
 	Delete(ctx context.Context, name string) error
@@ -36,9 +37,18 @@ func (u *users) Create(ctx context.Context, user *model.UsersM) error {
 	return u.db.WithContext(ctx).Create(user).Error
 }
 
-func (u *users) Get(ctx context.Context, name string) (*model.UsersM, error) {
+func (u *users) GetByName(ctx context.Context, name string) (*model.UsersM, error) {
 	var user model.UsersM
 	if err := u.db.WithContext(ctx).Where("name = ?", name).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (u *users) GetById(ctx context.Context, id int64) (*model.UsersM, error) {
+	var user model.UsersM
+	if err := u.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 
