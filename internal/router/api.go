@@ -43,16 +43,17 @@ func RegisterApiRouters(engine *gin.Engine) error {
 		api.Use(middleware.Auth())
 		{
 			api.GET("/user/:id", uc.Info)
-			api.GET("/friend/list", fc.AddressList)
 			api.GET("/group/list", gc.AddressList)
 
-			// TODO: Implement session management endpoints
 			api.GET("/sessions", sc.Index)
 			api.POST("/sessions", sc.Store)
 			api.GET("/sessions/:id", sc.Update)
 			api.GET("/sessions/:id", sc.Delete)
 
 			// TODO: Implement friend management endpoints
+			api.GET("/friends", fc.Index)
+			api.GET("/friends/:id", fc.Show)
+			api.DELETE("/friends/:id", fc.Delete)
 
 			// TODO: Implement message endpoints
 

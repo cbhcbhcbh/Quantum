@@ -18,4 +18,5 @@ type FriendM struct {
 	TopTime *string `gorm:"column:top_time" json:"top_time,omitempty"`
 	Status  int16   `gorm:"column:status" json:"status"` // 0 not pinned 1 pinned
 	Uid     string  `gorm:"column:uid" json:"uid"`
+	Users   UsersM  `gorm:"foreignKey:ID;references:ToID" json:"users,omitempty"` // User information
 }

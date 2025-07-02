@@ -8,6 +8,8 @@ import (
 
 type FriendBiz interface {
 	GetAllFriends(ctx *gin.Context, formId int64) (*[]v1.FriendDetail, error)
+	GetFriend(ctx *gin.Context, formId, toId int64) (*v1.FriendDetail, error)
+	DeleteFriend(ctx *gin.Context, formId, toId int64) error
 }
 
 type friendBiz struct {
@@ -39,4 +41,47 @@ func (b *friendBiz) GetAllFriends(ctx *gin.Context, formId int64) (*[]v1.FriendD
 	}
 
 	return &friendDetails, nil
+}
+
+func (b *friendBiz) GetFriend(ctx *gin.Context, formId, toId int64) (*v1.FriendDetail, error) {
+	c := ctx.Request.Context()
+
+	friend, err := b.ds.Friends().GetByFormIDAndToID(c, formId, toId)
+	if err != nil {
+		return nil, err
+	}
+	if friend == nil {
+		return nil, nil
+	}
+
+	friendDetail := &v1.FriendDetail{
+		ID:     friend.FormID,
+		Note:   friend.Note,
+		Status: friend.Status,
+		Uid:    friend.Uid,
+		Users: v1.UserDetails{
+			ID:            friend.Users.ID,
+			Name:          friend.Users.Name,
+			Email:         friend.Users.Email,
+			Avatar:        friend.Users.Avatar,
+			Status:        friend.Users.Status,
+			Bio:           friend.Users.Bio,
+			Sex:           friend.Users.Sex,
+			Age:           friend.Users.Age,
+			LastLoginTime: friend.Users.LastLoginTime,
+			Uid:           friend.Users.Uid,
+		},
+	}
+
+	return friendDetail, nil
+}
+
+func (b *friendBiz) DeleteFriend(ctx *gin.Context, formId, toId int64) error {
+	c := ctx.Request.Context()
+
+	if err := b.ds.Friends().Delete(c, formId, toId); err != nil {
+		return err
+	}
+
+	return nil
 }
