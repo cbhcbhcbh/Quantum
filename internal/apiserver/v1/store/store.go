@@ -22,6 +22,7 @@ type IStore interface {
 	Group() GroupStore
 	GroupUser() GroupUserStore
 	Friends() FriendsStore
+	Sessions() SessionStore
 }
 
 type datastore struct {
@@ -78,4 +79,8 @@ func (ds *datastore) GroupUser() GroupUserStore {
 
 func (ds *datastore) Friends() FriendsStore {
 	return NewFriends(ds.db)
+}
+
+func (ds *datastore) Sessions() SessionStore {
+	return NewSession(ds.db)
 }

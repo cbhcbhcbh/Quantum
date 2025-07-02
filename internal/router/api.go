@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/friends"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/group"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/session"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/users"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 	"github.com/cbhcbhcbh/Quantum/internal/middleware"
@@ -28,6 +29,7 @@ func RegisterApiRouters(engine *gin.Engine) error {
 	uc := users.New(store.S)
 	fc := friends.New(store.S)
 	gc := group.New(store.S)
+	sc := session.New(store.S)
 
 	api := engine.Group("/api")
 	{
@@ -45,7 +47,10 @@ func RegisterApiRouters(engine *gin.Engine) error {
 			api.GET("/group/list", gc.AddressList)
 
 			// TODO: Implement session management endpoints
-			
+			api.GET("/sessions", sc.Index)
+			api.POST("/sessions", sc.Store)
+			api.GET("/sessions/:id", sc.Update)
+			api.GET("/sessions/:id", sc.Delete)
 
 			// TODO: Implement friend management endpoints
 

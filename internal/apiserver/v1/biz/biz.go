@@ -3,6 +3,7 @@ package biz
 import (
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/friends"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/group"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/session"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/users"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
 )
@@ -11,6 +12,7 @@ type IBiz interface {
 	Users() users.UserBiz
 	Friends() friends.FriendBiz
 	Groups() group.GroupBiz
+	Sessions() session.SessionBiz
 }
 
 type biz struct {
@@ -35,4 +37,8 @@ func (b *biz) Friends() friends.FriendBiz {
 
 func (b *biz) Groups() group.GroupBiz {
 	return group.New(b.ds)
+}
+
+func (b *biz) Sessions() session.SessionBiz {
+	return session.New(b.ds)
 }
