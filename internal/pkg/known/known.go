@@ -13,11 +13,16 @@ const (
 )
 
 // Kafka topic
-var (
+const (
 	OfflinePrivateTopic = "offline_private_message"
 	OfflineGroupTopic   = "offline_group_message"
 
 	ChannelOfflineTopic      = "channel-offline-private"
 	ChannelGroupOfflineTopic = "channel-offline-group"
 	ChannelNodeTopic         = "channel-node"
+)
+
+// Redis Bitmap
+const (
+	RedisBitmapUserLoggedKey = "bitmap:user:online"
 )

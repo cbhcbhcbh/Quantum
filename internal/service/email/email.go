@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cbhcbhcbh/Quantum/internal/config"
+	"github.com/cbhcbhcbh/Quantum/pkg/redis"
 
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 )
@@ -68,7 +69,7 @@ func (e EmailService) SendEmail(code string, emailType int, email string, subjec
 	if err != nil {
 		return err
 	}
-	config.RedisDB.Set(e.getCacheFix(email, emailType), code, time.Minute*1)
+	redis.R.SetKey(e.getCacheFix(email, emailType), code, time.Minute*1)
 	return nil
 }
 
@@ -84,11 +85,10 @@ func (e EmailService) getCacheFix(email string, emailType int) string {
 }
 
 func (e EmailService) CheckCode(email string, code string, emailType int) bool {
-	redisCmd := config.RedisDB.Get(e.getCacheFix(email, emailType))
-	val, _ := redisCmd.Result()
+	val := redis.R.GetKey(e.getCacheFix(email, emailType))
 
 	if val == code {
-		config.RedisDB.Del(e.getCacheFix(email, emailType))
+		redis.R.DelKey(e.getCacheFix(email, emailType))
 		return true
 	}
 

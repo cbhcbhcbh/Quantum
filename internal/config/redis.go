@@ -9,8 +9,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var RedisDB *redis.Client
-
 func InitRedis() {
 	redisOptions := &redis.Options{
 		Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
@@ -25,5 +23,5 @@ func InitRedis() {
 		PoolTimeout:  5 * time.Second,
 	}
 
-	RedisDB = goRedis.NewRedisClient(redisOptions)
+	_ = goRedis.NewredisClient(redisOptions)
 }

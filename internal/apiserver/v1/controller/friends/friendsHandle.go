@@ -7,6 +7,7 @@ import (
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/known"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 	v1 "github.com/cbhcbhcbh/Quantum/pkg/api/v1"
+	"github.com/cbhcbhcbh/Quantum/pkg/redis"
 	"github.com/cbhcbhcbh/Quantum/pkg/response"
 	"github.com/gin-gonic/gin"
 )
@@ -48,8 +49,25 @@ func (fc *FriendController) Show(c *gin.Context) {
 	response.SuccessResponse(friend).ToJson(c)
 }
 
+// TODO: Implement retrieval of user online status
 func (fc *FriendController) GetUserStatus(c *gin.Context) {
+	log.C(c).Infow("Friend Show function called")
 
+	id := c.GetInt64(known.XIdKey)
+	isOnline := redis.R.GetBitmaps(id)
+
+	if isOnline {
+		response.SuccessResponse(&v1.UserStatus{
+			Status: enum.WsUserOnline,
+			Id:     id,
+		}).ToJson(c)
+		return
+	}
+	response.SuccessResponse(&v1.UserStatus{
+		Status: enum.WsUserOffline,
+		Id:     id,
+	}).ToJson(c)
+	return
 }
 
 func (fc *FriendController) Delete(c *gin.Context) {

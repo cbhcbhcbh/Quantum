@@ -50,10 +50,10 @@ func RegisterApiRouters(engine *gin.Engine) error {
 			api.GET("/sessions/:id", sc.Update)
 			api.GET("/sessions/:id", sc.Delete)
 
-			// TODO: Implement friend management endpoints
 			api.GET("/friends", fc.Index)
 			api.GET("/friends/:id", fc.Show)
 			api.DELETE("/friends/:id", fc.Delete)
+			api.GET("/friends/status/:id", fc.GetUserStatus)
 
 			// TODO: Implement message endpoints
 

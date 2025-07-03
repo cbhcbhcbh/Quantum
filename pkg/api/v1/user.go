@@ -80,3 +80,8 @@ type UserDetails struct {
 	LastLoginTime string `json:"last_login_time" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
 	Uid           string `json:"uid" validate:"omitempty"`
 }
+
+type UserStatus struct {
+	Status int `json:"status"`
+	Id     int64 `json:"id"`
+}
