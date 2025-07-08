@@ -2,11 +2,14 @@ package friends
 
 import (
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
+	"github.com/cbhcbhcbh/Quantum/internal/pkg/date"
+	"github.com/cbhcbhcbh/Quantum/internal/pkg/model"
 	v1 "github.com/cbhcbhcbh/Quantum/pkg/api/v1"
 	"github.com/gin-gonic/gin"
 )
 
 type FriendBiz interface {
+	CreateFriendRelation(ctx *gin.Context, formId, toId int64)
 	GetAllFriends(ctx *gin.Context, formId int64) (*[]v1.FriendDetail, error)
 	GetFriend(ctx *gin.Context, formId, toId int64) (*v1.FriendDetail, error)
 	DeleteFriend(ctx *gin.Context, formId, toId int64) error
@@ -84,4 +87,25 @@ func (b *friendBiz) DeleteFriend(ctx *gin.Context, formId, toId int64) error {
 	}
 
 	return nil
+}
+
+func (b *friendBiz) CreateFriendRelation(ctx *gin.Context, formId, toId int64) {
+	friendRelation1 := model.FriendM{
+		FormID:  formId,
+		ToID:    toId,
+		Status:  model.FriendNotPinned,
+		TopTime: date.NewDate(),
+		Note:    "",
+	}
+
+	friendRelation2 := model.FriendM{
+		FormID:  toId,
+		ToID:    formId,
+		Status:  model.FriendNotPinned,
+		TopTime: date.NewDate(),
+		Note:    "",
+	}
+
+	_ = b.ds.Friends().Create(ctx, &friendRelation1)
+	_ = b.ds.Friends().Create(ctx, &friendRelation2)
 }

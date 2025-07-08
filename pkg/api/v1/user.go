@@ -65,7 +65,7 @@ type SendEmailRequest struct {
 }
 
 type Person struct {
-	ID string `uri:"id" binding:"required"`
+	ID int64 `uri:"id" binding:"required"`
 }
 
 type UserDetails struct {
@@ -82,6 +82,6 @@ type UserDetails struct {
 }
 
 type UserStatus struct {
-	Status int `json:"status"`
+	Status int   `json:"status"`
 	Id     int64 `json:"id"`
 }

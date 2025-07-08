@@ -13,3 +13,7 @@ func TimeUnixNano() int64 {
 func TimeUnix() int64 {
 	return time.Now().Unix()
 }
+
+func TimeToString(createAt time.Time) string {
+	return createAt.Format("2006-01-02 15:04:05")
+}

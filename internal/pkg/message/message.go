@@ -36,6 +36,23 @@ type AckMessage struct {
 	MsgClientId int64  `json:"msg_client_id"` // Client-generated message ID for tracking
 }
 
+type CreateFriendMessage struct {
+	MsgCode     int    `json:"msg_code"`
+	ID          int64  `json:"id"`
+	FormID      int64  `json:"form_id"`
+	Status      int16  `json:"status"`
+	CreatedAt   string `json:"created_at"`
+	ToID        int64  `json:"to_id"`
+	Information string `json:"information"`
+	Users       Users  `json:"users"`
+}
+
+type Users struct {
+	Name   string `json:"name"`
+	ID     int64  `json:"id"`
+	Avatar string `json:"avatar"`
+}
+
 const (
 	ERROR     = 0
 	PRIVATE   = 1

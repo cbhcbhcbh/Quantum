@@ -13,6 +13,7 @@ type SessionBiz interface {
 	CreateSession(ctx *gin.Context, formId, toId int64, channelType int16) (*model.SessionM, error)
 	UpdateSession(ctx *gin.Context, sessionId int64, topStatus int16, note string) error
 	DeleteSession(ctx *gin.Context, sessionId int64) error
+	CreateSessionRelation(ctx *gin.Context, formId, toId int64, channelType int16, user *v1.UserDetails)
 }
 
 type sessionBiz struct {
@@ -97,4 +98,34 @@ func (s *sessionBiz) DeleteSession(ctx *gin.Context, sessionId int64) error {
 	c := ctx.Request.Context()
 
 	return s.ds.Sessions().Delete(c, sessionId)
+}
+
+// FIXME: Fix User Info
+func (s *sessionBiz) CreateSessionRelation(ctx *gin.Context, formId, toId int64, channelType int16, user *v1.UserDetails) {
+	sessionRelation1 := model.SessionM{
+		ToID:        toId,
+		FormID:      formId,
+		TopStatus:   model.TopStatus,
+		TopTime:     date.NewDate(),
+		Note:        user.Name,
+		ChannelType: channelType,
+		Name:        user.Name,
+		Avatar:      user.Avatar,
+		Status:      model.SessionStatusOk,
+	}
+
+	sessionRelation2 := model.SessionM{
+		ToID:        formId,
+		FormID:      toId,
+		TopStatus:   model.TopStatus,
+		TopTime:     date.NewDate(),
+		Note:        user.Name,
+		ChannelType: channelType,
+		Name:        user.Name,
+		Avatar:      user.Avatar,
+		Status:      model.SessionStatusOk,
+	}
+
+	_ = s.ds.Sessions().Create(ctx, &sessionRelation1)
+	_ = s.ds.Sessions().Create(ctx, &sessionRelation2)
 }

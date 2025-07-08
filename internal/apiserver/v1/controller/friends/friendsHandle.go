@@ -49,7 +49,6 @@ func (fc *FriendController) Show(c *gin.Context) {
 	response.SuccessResponse(friend).ToJson(c)
 }
 
-// TODO: Implement retrieval of user online status
 func (fc *FriendController) GetUserStatus(c *gin.Context) {
 	log.C(c).Infow("Friend Show function called")
 
@@ -67,7 +66,6 @@ func (fc *FriendController) GetUserStatus(c *gin.Context) {
 		Status: enum.WsUserOffline,
 		Id:     id,
 	}).ToJson(c)
-	return
 }
 
 func (fc *FriendController) Delete(c *gin.Context) {

@@ -218,3 +218,15 @@ func pullAndPushOfflineMessages[T any](
 		_ = updateFunc(ctx, ids, 1)
 	}
 }
+
+func (cm *ClientManager) SendFriendActionMessage(msg message.CreateFriendMessage) bool {
+	toId := msg.ToID
+	message, _ := json.Marshal(msg)
+
+	client, ok := cm.ClientMap[toId]
+	if ok {
+		client.Send <- message
+		return true
+	}
+	return false
+}

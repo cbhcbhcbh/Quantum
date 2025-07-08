@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
@@ -178,8 +177,7 @@ func (b *userBiz) SendEmail(ctx *gin.Context, r *v1.SendEmailRequest) error {
 func (b *userBiz) GetUserInfo(ctx *gin.Context, r *v1.Person) (*v1.UserDetails, error) {
 	c := ctx.Request.Context()
 
-	id, _ := strconv.ParseInt(r.ID, 10, 64)
-	user, err := b.ds.Users().GetById(c, id)
+	user, err := b.ds.Users().GetById(c, r.ID)
 	if err != nil {
 		return nil, err
 	}

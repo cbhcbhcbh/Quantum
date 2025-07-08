@@ -54,6 +54,11 @@ func RegisterApiRouters(engine *gin.Engine) error {
 			api.GET("/friends/:id", fc.Show)
 			api.DELETE("/friends/:id", fc.Delete)
 			api.GET("/friends/status/:id", fc.GetUserStatus)
+			
+			api.POST("/friends/record", fc.SendFriendRequest)
+			api.GET("/friends/record", fc.ListFriendRequests)
+			api.PUT("/friends/record", fc.AcceptFriendRequest)
+			api.GET("/friends/userQuery", fc.QueryNonFriendUsers)
 
 			// TODO: Implement message endpoints
 
