@@ -4,6 +4,7 @@ import (
 	friendrecord "github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/friendRecord"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/friends"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/group"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/message"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/session"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/biz/users"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
@@ -15,6 +16,7 @@ type IBiz interface {
 	Groups() group.GroupBiz
 	Sessions() session.SessionBiz
 	FriendRecord() friendrecord.FriendRecordBiz
+	Message() message.MessageBiz
 }
 
 type biz struct {
@@ -47,4 +49,8 @@ func (b *biz) Sessions() session.SessionBiz {
 
 func (b *biz) FriendRecord() friendrecord.FriendRecordBiz {
 	return friendrecord.New(b.ds)
+}
+
+func (b *biz) Message() message.MessageBiz {
+	return message.New(b.ds)
 }

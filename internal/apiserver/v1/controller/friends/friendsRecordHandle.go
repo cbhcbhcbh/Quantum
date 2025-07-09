@@ -139,13 +139,3 @@ func (fc *FriendController) AcceptFriendRequest(c *gin.Context) {
 	response.SuccessResponse(friend).WriteTo(c)
 
 }
-
-func (fc *FriendController) QueryNonFriendUsers(c *gin.Context) {
-	log.C(c).Infow("Friend QueryNonFriendUsers function called")
-
-	// TODO: implement query non-friend users
-
-	// id := c.GetInt64(known.XIdKey)
-	// email := c.GetString(known.XEmailKey)
-
-}

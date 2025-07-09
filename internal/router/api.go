@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/friends"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/group"
+	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/message"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/session"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/controller/users"
 	"github.com/cbhcbhcbh/Quantum/internal/apiserver/v1/store"
@@ -30,6 +31,7 @@ func RegisterApiRouters(engine *gin.Engine) error {
 	fc := friends.New(store.S)
 	gc := group.New(store.S)
 	sc := session.New(store.S)
+	mc := message.New(store.S)
 
 	api := engine.Group("/api")
 	{
@@ -54,13 +56,19 @@ func RegisterApiRouters(engine *gin.Engine) error {
 			api.GET("/friends/:id", fc.Show)
 			api.DELETE("/friends/:id", fc.Delete)
 			api.GET("/friends/status/:id", fc.GetUserStatus)
-			
+
 			api.POST("/friends/record", fc.SendFriendRequest)
 			api.GET("/friends/record", fc.ListFriendRequests)
 			api.PUT("/friends/record", fc.AcceptFriendRequest)
-			api.GET("/friends/userQuery", fc.QueryNonFriendUsers)
 
 			// TODO: Implement message endpoints
+			api.GET("/messages", mc.PrivateMessage)
+			api.GET("/messages/groups", mc.GroupMessage)
+
+			api.POST("/messages/private", mc.SendMessage)
+			api.POST("/messages/group", mc.SendMessage)
+			api.POST("/messages/video", mc.SendVideoMessage)
+			api.POST("/messages/recall", mc.RecallMessage)
 
 			// TODO: Implement group endpoints
 

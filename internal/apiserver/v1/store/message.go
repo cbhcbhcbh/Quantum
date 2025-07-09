@@ -8,7 +8,7 @@ import (
 )
 
 type MessageStore interface {
-	Create(ctx context.Context, message *model.MessageM) error
+	ListByFormIdAndToId(ctx context.Context, formId, toId int64) ([]*model.MessageM, error)
 }
 
 type message struct {
@@ -23,6 +23,7 @@ func NewMessage(db *gorm.DB) MessageStore {
 	}
 }
 
-func (m *message) Create(ctx context.Context, message *model.MessageM) error {
-	return m.db.WithContext(ctx).Create(message).Error
+func (m *message) ListByFormIdAndToId(ctx context.Context, formId, toId int64) ([]*model.MessageM, error) {
+	m.db.WithContext(ctx).Where
 }
+

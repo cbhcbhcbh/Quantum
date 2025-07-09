@@ -21,3 +21,7 @@ type SessionM struct {
 	Status      int16  `gorm:"column:status" json:"status"`               // 0 normal 1 disabled
 	GroupID     int64  `gorm:"column:group_id" json:"group_id,omitempty"` // group id
 }
+
+func (s *SessionM) TableName() string {
+	return "sessions"
+}

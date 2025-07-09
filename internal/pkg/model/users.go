@@ -16,6 +16,6 @@ type UsersM struct {
 	Uid           string `gorm:"column:uid" json:"uid"`
 }
 
-func (u *UsersM) Table() string {
+func (u *UsersM) TableName() string {
 	return "users"
 }

@@ -17,6 +17,10 @@ type GroupUserM struct {
 	Name      string `gorm:"column:name" json:"name,omitempty"`
 }
 
+func (g *GroupUserM) TableName() string {
+	return "group_users"
+}
+
 type GroupM struct {
 	ModelID
 	ModelTimestamps
@@ -29,4 +33,8 @@ type GroupM struct {
 	IsPwd     int16  `gorm:"column:is_pwd" json:"is_pwd"`         // is encrypted 0 no 1 yes
 	Hot       int64  `gorm:"column:hot" json:"hot,omitempty"`     // popularity
 	Theme     string `gorm:"column:theme" json:"theme,omitempty"` // group theme
+}
+
+func (g *GroupM) TableName() string {
+	return "groups"
 }

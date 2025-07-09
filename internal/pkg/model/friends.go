@@ -29,6 +29,10 @@ type IUsers struct {
 	Avatar string `json:"avatar"`
 }
 
+func (f *FriendRecordM) TableName() string {
+	return "friend_records"
+}
+
 type FriendM struct {
 	ModelID
 	ModelTimestamps
@@ -39,4 +43,8 @@ type FriendM struct {
 	Status  int16  `gorm:"column:status" json:"status"` // 0 not pinned 1 pinned
 	Uid     string `gorm:"column:uid" json:"uid"`
 	Users   UsersM `gorm:"foreignKey:ID;references:ToID" json:"users,omitempty"` // User information
+}
+
+func (f *FriendM) TableName() string {
+	return "friends"
 }

@@ -26,6 +26,10 @@ type GroupMessageM struct {
 	GroupID         int64           `gorm:"column:group_id" json:"group_id"`
 }
 
+func (m *GroupMessageM) TableName() string {
+	return "group_messages"
+}
+
 // group_offline_messages
 type GroupOfflineMessageM struct {
 	ModelID
@@ -36,6 +40,10 @@ type GroupOfflineMessageM struct {
 	ReceiveID int64           `gorm:"column:receive_id" json:"receive_id"` // receiver id
 }
 
+func (m *GroupOfflineMessageM) TableName() string {
+	return "group_offline_messages"
+}
+
 // group_user_messages
 type GroupUserMessageM struct {
 	ModelID
@@ -43,6 +51,10 @@ type GroupUserMessageM struct {
 	UserID  int64 `gorm:"column:user_id" json:"user_id"`
 	GroupID int64 `gorm:"column:group_id" json:"group_id"`
 	Status  int16 `gorm:"column:status" json:"status"` // 0 unread 1 read
+}
+
+func (m *GroupUserMessageM) TableName() string {
+	return "group_user_messages"
 }
 
 // private messages
@@ -58,6 +70,10 @@ type MessageM struct {
 	Data    *string `gorm:"column:data" json:"data"`
 }
 
+func (m *MessageM) TableName() string {
+	return "messages"
+}
+
 // offline_messages
 type OfflineMessageM struct {
 	ModelID
@@ -66,4 +82,8 @@ type OfflineMessageM struct {
 	SendTime  int64           `gorm:"column:send_time" json:"send_time"`
 	Status    int16           `gorm:"column:status" json:"status"`         // 0 not pushed 1 pushed
 	ReceiveID int64           `gorm:"column:receive_id" json:"receive_id"` // receiver id
+}
+
+func (m *OfflineMessageM) TableName() string {
+	return "offline_messages"
 }
