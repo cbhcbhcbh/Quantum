@@ -12,6 +12,7 @@ import (
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/log"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/message"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/model"
+	v1 "github.com/cbhcbhcbh/Quantum/pkg/api/v1"
 	"github.com/cbhcbhcbh/Quantum/pkg/kafka"
 	"github.com/gorilla/websocket"
 )
@@ -34,6 +35,11 @@ type IClientManager interface {
 	LaunchPrivateMessage(message []byte)
 	LaunchBroadcastMessage(message []byte)
 	LaunchGroupMessage(message []byte)
+	ConsumingPrivateOfflineMessage(ctx context.Context, client *Client)
+	ConsumingGroupOfflineMessages(ctx context.Context, client *Client)
+	SendFriendActionMessage(msg message.CreateFriendMessage) bool
+	SendMessageToSpecifiedClient(message []byte, toId int64) bool
+	SendPrivateMessage(msg v1.PrivateMessageRequest) (bool, string)
 }
 
 var (
@@ -81,7 +87,7 @@ func (cm *ClientManager) Start() {
 		select {
 		case client := <-cm.Register:
 			cm.SetClient(client)
-			cm.PullPrivateOfflineMessage(ctx, client)
+			cm.ConsumingPrivateOfflineMessage(ctx, client)
 			cm.ConsumingGroupOfflineMessages(ctx, client)
 			log.C(ctx).Infow("Client registered", "id", client.ID)
 
@@ -160,7 +166,7 @@ func (cm *ClientManager) LaunchGroupMessage(ctx context.Context, msg []byte) {
 	}
 }
 
-func (cm *ClientManager) PullPrivateOfflineMessage(ctx context.Context, client *Client) {
+func (cm *ClientManager) ConsumingPrivateOfflineMessage(ctx context.Context, client *Client) {
 	pullAndPushOfflineMessages(
 		ctx,
 		client,
@@ -229,4 +235,29 @@ func (cm *ClientManager) SendFriendActionMessage(msg message.CreateFriendMessage
 		return true
 	}
 	return false
+}
+
+func (manager *ClientManager) SendMessageToSpecifiedClient(message []byte, toId int64) bool {
+	data, ok := manager.ClientMap[toId]
+	if ok {
+		data.Send <- message
+		return true
+	}
+	return false
+}
+
+func (cm *ClientManager) SendPrivateMessage(msg v1.PrivateMessageRequest) (bool, string) {
+	msgString := message.GetPrivateChatMessages(msg, true)
+
+	if client, ok := cm.ClientMap[msg.ToID]; ok {
+		client.Send <- []byte(msgString)
+		return true, "Message sent directly"
+	} else {
+		kafka.P.Push([]byte(msgString), strconv.Itoa(int(msg.ChannelType)), known.OfflinePrivateTopic)
+		return true, "Message queued for offline delivery"
+	}
+}
+
+func (cm *ClientManager) SendGroupMessage(msg v1.PrivateMessageRequest) (bool, string) {
+	return false, ""
 }

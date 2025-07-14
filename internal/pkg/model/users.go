@@ -1,5 +1,10 @@
 package model
 
+var (
+	USER_TYPE = 0
+	BOT_TYPE  = 1
+)
+
 type UsersM struct {
 	ModelID
 	ModelTimestamps
@@ -14,6 +19,7 @@ type UsersM struct {
 	Age           int    `gorm:"column:age" json:"age"`
 	LastLoginTime string `gorm:"column:last_login_time" json:"last_login_time"`
 	Uid           string `gorm:"column:uid" json:"uid"`
+	UserType      int    `gorm:"column:user_type" json:"user_type"`
 }
 
 func (u *UsersM) TableName() string {

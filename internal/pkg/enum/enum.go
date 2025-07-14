@@ -30,4 +30,7 @@ const (
 	IMAGE        = 4
 	LOGOUT_GROUP = 5
 	JOIN_GROUP   = 6
+
+	IsNotRead = 0
+	IsRead    = 1
 )

@@ -61,13 +61,14 @@ func (m *GroupUserMessageM) TableName() string {
 type MessageM struct {
 	ModelID
 	ModelTimestamps
-	Msg     string  `gorm:"column:msg" json:"msg"`
-	FormID  int64   `gorm:"column:form_id" json:"form_id"`
-	ToID    int64   `gorm:"column:to_id" json:"to_id"`
-	IsRead  *int16  `gorm:"column:is_read" json:"is_read"`   // 0 unread 1 read
-	MsgType int16   `gorm:"column:msg_type" json:"msg_type"` // default 1
-	Status  *int16  `gorm:"column:status" json:"status"`
-	Data    *string `gorm:"column:data" json:"data"`
+	Msg      string `gorm:"column:msg" json:"msg"`
+	FormID   int64  `gorm:"column:form_id" json:"form_id"`
+	ToID     int64  `gorm:"column:to_id" json:"to_id"`
+	IsRead   int16  `gorm:"column:is_read" json:"is_read"`   // 0 unread 1 read
+	MsgType  int16  `gorm:"column:msg_type" json:"msg_type"` // default 1
+	Status   int16  `gorm:"column:status" json:"status"`
+	Data     string `gorm:"column:data" json:"data"`
+	SendTime string `json:"send_time,omitempty"`
 }
 
 func (m *MessageM) TableName() string {

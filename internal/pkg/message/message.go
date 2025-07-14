@@ -6,6 +6,7 @@ import (
 
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/date"
 	"github.com/cbhcbhcbh/Quantum/internal/pkg/enum"
+	v1 "github.com/cbhcbhcbh/Quantum/pkg/api/v1"
 	"github.com/google/uuid"
 )
 
@@ -113,4 +114,28 @@ func ValidationMsg(msg []byte) ([]byte, []byte, int, error) {
 	}
 
 	return msgByte, ackMsgByte, wsMsg.ChannelType, nil
+}
+
+func GetPrivateChatMessages(message v1.PrivateMessageRequest, isGrpcMessage bool) string {
+	msg := fmt.Sprintf(`{
+                "msg_id": %d,
+                "msg_client_id": %d,
+                "msg_code": %d,
+                "form_id": %d,
+                "to_id": %d,
+                "msg_type": %d,
+                "channel_type": %d,
+                "message": "%s",
+                "data": "%s"
+        }`, message.MsgId, message.MsgClientId, message.MsgCode, message.FormID, message.ToID, message.MsgType, message.ChannelType, message.Message, message.Data)
+	if isGrpcMessage {
+		return msg
+	} else {
+		msgString := fmt.Sprintf(`{
+"receive_id":"%d",
+"channel_type":%d,
+"msg":%s
+}`, message.ToID, message.ChannelType, msg)
+		return msgString
+	}
 }
