@@ -1,11 +1,14 @@
-runmode: debug               
-addr: :8080   
-shutdown-timeout: 10s 
-
-jwt:
-   secret: m35xbjk4LXlobmctczNjcjN0LWszeTY2NiQ=
-   timeout: 24h
-   max-refresh: 168h
+chat:
+  http:
+    server:
+      port:"8080"
+      maxConn: 200
+    grpc:
+      server: "4000"
+    jwt:
+      secret: m35xbjk4LXlobmctczNjcjN0LWszeTY2NiQ=
+      timeout: 24h
+      max-refresh: 168h
  
 db:
    host: 127.0.0.1 
