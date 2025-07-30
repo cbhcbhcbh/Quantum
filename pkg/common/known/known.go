@@ -1,4 +1,4 @@
-package log
+package known
 
 const (
 	XRequestIDKey = "X-Request-ID"

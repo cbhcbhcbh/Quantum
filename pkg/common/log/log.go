@@ -1,156 +1,66 @@
 package log
 
 import (
-	"context"
-	"sync"
-	"time"
+	"io"
+	"os"
 
+	"github.com/cbhcbhcbh/Quantum/pkg/config"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-type Logger interface {
-	Debugw(msg string, keysAndValues ...any)
-	Infow(msg string, keysAndValues ...any)
-	Warnw(msg string, keysAndValues ...any)
-	Errorw(msg string, keysAndValues ...any)
-	Panicw(msg string, keysAndValues ...any)
-	Fatalw(msg string, keysAndValues ...any)
-	Sync()
+type HttpLog struct {
+	*zap.Logger
 }
 
-type zapLogger struct {
-	z *zap.Logger
+type GrpcLog struct {
+	*zap.Logger
 }
 
-var _ Logger = &zapLogger{}
+func init() {
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoder := zapcore.NewConsoleEncoder(encoderCfg)
 
-var (
-	mu  sync.Mutex
-	std = NewLogger(NewOptions())
-)
-
-func Init(opts *Options) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	std = NewLogger(opts)
+	core := zapcore.NewCore(
+		encoder,
+		zapcore.AddSync(os.Stdout),
+		zapcore.InfoLevel,
+	)
+	logger := zap.New(core)
+	zap.ReplaceGlobals(logger)
 }
 
-func NewLogger(opts *Options) *zapLogger {
-	if opts == nil {
-		opts = NewOptions()
-	}
+func NewHttpLog(config *config.Config) (HttpLog, error) {
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoder := zapcore.NewConsoleEncoder(encoderCfg)
 
-	var zapLevel zapcore.Level
-	if err := zapLevel.UnmarshalText([]byte(opts.Level)); err != nil {
-		zapLevel = zapcore.InfoLevel
-	}
+	core := zapcore.NewCore(
+		encoder,
+		zapcore.AddSync(os.Stdout),
+		zapcore.InfoLevel,
+	)
+	logger := zap.New(core).With(zap.String("proto", "http"))
 
-	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.MessageKey = "message"
-	encoderConfig.TimeKey = "timestamp"
-	encoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-		enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
-	}
-	encoderConfig.EncodeDuration = func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
-		enc.AppendFloat64(float64(d) / float64(time.Millisecond))
-	}
+	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = io.Writer(os.Stderr)
 
-	cfg := &zap.Config{
-		DisableCaller:     opts.DisableCaller,
-		DisableStacktrace: opts.DisableStacktrace,
-		Level:             zap.NewAtomicLevelAt(zapLevel),
-		Encoding:          opts.Format,
-		EncoderConfig:     encoderConfig,
-		OutputPaths:       opts.OutputPaths,
-		ErrorOutputPaths:  []string{"stderr"},
-	}
-
-	z, err := cfg.Build(zap.AddStacktrace(zapcore.PanicLevel), zap.AddCallerSkip(1))
-	if err != nil {
-		panic(err)
-	}
-	logger := &zapLogger{z: z}
-
-	zap.RedirectStdLog(z)
-
-	return logger
+	return HttpLog{logger}, nil
 }
 
-func Sync() { std.Sync() }
+func NewGrpcLog(config *config.Config) (GrpcLog, error) {
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoder := zapcore.NewConsoleEncoder(encoderCfg)
 
-func (l *zapLogger) Sync() {
-	_ = l.z.Sync()
-}
+	core := zapcore.NewCore(
+		encoder,
+		zapcore.AddSync(os.Stdout),
+		zapcore.ErrorLevel,
+	)
+	logger := zap.New(core).With(zap.String("proto", "grpc"))
 
-func Debugw(msg string, keysAndValues ...any) {
-	std.z.Sugar().Debugw(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Debugw(msg string, keysAndValues ...any) {
-	l.z.Sugar().Debugw(msg, keysAndValues...)
-}
-
-func Infow(msg string, keysAndValues ...any) {
-	std.z.Sugar().Infow(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Infow(msg string, keysAndValues ...any) {
-	l.z.Sugar().Infow(msg, keysAndValues...)
-}
-
-func Warnw(msg string, keysAndValues ...any) {
-	std.z.Sugar().Warnw(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Warnw(msg string, keysAndValues ...any) {
-	l.z.Sugar().Warnw(msg, keysAndValues...)
-}
-
-func Errorw(msg string, keysAndValues ...any) {
-	std.z.Sugar().Errorw(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Errorw(msg string, keysAndValues ...any) {
-	l.z.Sugar().Errorw(msg, keysAndValues...)
-}
-
-func Panicw(msg string, keysAndValues ...any) {
-	std.z.Sugar().Panicw(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Panicw(msg string, keysAndValues ...any) {
-	l.z.Sugar().Panicw(msg, keysAndValues...)
-}
-
-func Fatalw(msg string, keysAndValues ...any) {
-	std.z.Sugar().Fatalw(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Fatalw(msg string, keysAndValues ...any) {
-	l.z.Sugar().Fatalw(msg, keysAndValues...)
-}
-
-func C(ctx context.Context) *zapLogger {
-	return std.C(ctx)
-}
-
-func (l *zapLogger) C(ctx context.Context) *zapLogger {
-	lc := l.clone()
-
-	if requestID := ctx.Value(XRequestIDKey); requestID != nil {
-		lc.z = lc.z.With(zap.Any(XRequestIDKey, requestID))
-	}
-
-	if userID := ctx.Value(XUsernameKey); userID != nil {
-		lc.z = lc.z.With(zap.Any(XUsernameKey, userID))
-	}
-
-	return lc
-}
-
-func (l *zapLogger) clone() *zapLogger {
-	lc := *l
-	return &lc
+	return GrpcLog{logger}, nil
 }

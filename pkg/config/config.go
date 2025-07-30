@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Chat  *ChatConfig  `mapstructure:"chat"`
 	Redis *RedisConfig `mapstructure:"redis"`
+	Kafka *KafkaConfig `mapstructure:"kafka"`
 }
 
 type ChatConfig struct {
@@ -46,6 +47,11 @@ type ChatConfig struct {
 	}
 }
 
+type KafkaConfig struct {
+	Addrs   string
+	Version string
+}
+
 type RedisConfig struct {
 	Password                string
 	Addrs                   string
@@ -69,6 +75,9 @@ func setDefault() {
 	viper.SetDefault("chat.message.maxSizeByte", 4096)
 	viper.SetDefault("chat.jwt.secret", "replaceme")
 	viper.SetDefault("chat.jwt.expirationSecond", 86400)
+
+	viper.SetDefault("kafka.addrs", "localhost:9092")
+	viper.SetDefault("kafka.version", "1.0.0")
 
 	viper.SetDefault("redis.password", "")
 	viper.SetDefault("redis.addrs", "localhost:6379")
