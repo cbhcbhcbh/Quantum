@@ -1,6 +1,7 @@
 package wire
 
 import (
+	"github.com/cbhcbhcbh/Quantum/pkg/chat"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/server"
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
 	"github.com/cbhcbhcbh/Quantum/pkg/infra"
@@ -17,6 +18,9 @@ func InitalizeChatServer(name string) (*server.Server, error) {
 
 		infra.NewKafkaPublisher,
 		infra.NewKafkaSubscriber,
+
+		chat.NewMelodyChatConn,
+		chat.NewGinServer,
 	)
 
 	return &server.Server{}, nil

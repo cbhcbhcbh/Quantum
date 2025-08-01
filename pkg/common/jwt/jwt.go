@@ -6,14 +6,12 @@ import (
 
 	goJwt "github.com/golang-jwt/jwt/v5"
 	"github.com/spf13/viper"
-
 )
 
 var (
 	ErrInvalidToken = errors.New("invalid token")
 	ErrTokenExpired = errors.New("token expired")
 )
-
 
 type JWT struct {
 	SigningKey []byte
@@ -56,6 +54,9 @@ func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 	})
 
 	if err != nil {
+		if errors.Is(err, goJwt.ErrTokenExpired) {
+			return nil, ErrTokenExpired
+		}
 		return nil, err
 	}
 

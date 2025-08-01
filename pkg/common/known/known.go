@@ -1,5 +1,7 @@
 package known
 
+import "errors"
+
 const (
 	XRequestIDKey = "X-Request-ID"
 
@@ -12,17 +14,17 @@ const (
 	XEmailKey = "X-Email"
 )
 
-// Kafka topic
-const (
-	OfflinePrivateTopic = "offline_private_message"
-	OfflineGroupTopic   = "offline_group_message"
+type HTTPContextKey string
 
-	ChannelOfflineTopic      = "channel-offline-private"
-	ChannelGroupOfflineTopic = "channel-offline-group"
-	ChannelNodeTopic         = "channel-node"
+var (
+	JWTAuthHeader                  = "Authorization"
+	ChannelIdHeader                = "X-Channel-Id"
+	ChannelKey      HTTPContextKey = "channel_key"
+	UserKey         HTTPContextKey = "user_key"
 )
 
-// Redis Bitmap
-const (
-	RedisBitmapUserLoggedKey = "bitmap:user:online"
+var (
+	ErrInvalidParam = errors.New("invalid parameter")
+	ErrServer       = errors.New("server error")
+	ErrUnauthorized = errors.New("unauthorized")
 )
