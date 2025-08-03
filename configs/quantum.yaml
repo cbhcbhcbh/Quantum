@@ -4,11 +4,22 @@ chat:
       port:"8080"
       maxConn: 200
     grpc:
-      server: "4000"
+      server:
+        port: "4000"
+      client:
+        user:
+          endpoint: "localhost:4001"
+        forwarder:
+          endpoint: "localhost:4002"
     jwt:
       secret: m35xbjk4LXlobmctczNjcjN0LWszeTY2NiQ=
       timeout: 24h
       max-refresh: 168h
+
+forwarder:
+  grpc:
+    server:
+      port: "4002" 
  
 db:
    host: 127.0.0.1 
