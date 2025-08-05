@@ -28,3 +28,8 @@ var (
 	ErrServer       = errors.New("server error")
 	ErrUnauthorized = errors.New("unauthorized")
 )
+
+var (
+	ChannelUsersPrefix = "rc:chanusers"
+	OnlineUsersPrefix  = "rc:onlineusers"
+)

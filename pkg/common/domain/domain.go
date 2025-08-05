@@ -5,6 +5,16 @@ import (
 	"strconv"
 )
 
+type User struct {
+	ID   uint64
+	Name string
+}
+
+type Channel struct {
+	ID          uint64
+	AccessToken string
+}
+
 type Message struct {
 	MessageID uint64 `json:"message_id"`
 	Event     int    `json:"event"`

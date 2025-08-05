@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,4 +27,16 @@ func GetDurationInMillseconds(start time.Time) float64 {
 	milliseconds := float64(duration) / float64(time.Millisecond)
 	rounded := float64(int(milliseconds*100+.5)) / 100
 	return rounded
+}
+
+func ConstructKey(prefix string, id uint64) string {
+	return Join(prefix, ":", strconv.FormatUint(id, 10))
+}
+
+func Join(strs ...string) string {
+	var sb strings.Builder
+	for _, str := range strs {
+		sb.WriteString(str)
+	}
+	return sb.String()
 }

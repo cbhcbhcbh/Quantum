@@ -23,6 +23,7 @@ type RedisCache interface {
 	Get(ctx context.Context, key string, dst interface{}) (bool, error)
 	Set(ctx context.Context, key string, val interface{}) error
 	Delete(ctx context.Context, key string) error
+	HSet(ctx context.Context, key string, values ...interface{}) error
 }
 
 type RedisCacheImpl struct {
@@ -80,4 +81,8 @@ func (rc *RedisCacheImpl) Delete(ctx context.Context, key string) error {
 		return err
 	}
 	return nil
+}
+
+func (rc *RedisCacheImpl) HSet(ctx context.Context, key string, values ...interface{}) error {
+	return rc.client.HSet(ctx, key, values).Err()
 }

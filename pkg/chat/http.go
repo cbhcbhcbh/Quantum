@@ -31,6 +31,7 @@ type HttpServer struct {
 	httpPort      string
 	httpServer    *http.Server
 	msgSubscriber *MessageSubscriber
+	userSvc       UserService
 }
 
 func NewMelodyChatConn(config *config.Config) MelodyChatConn {
@@ -50,7 +51,7 @@ func NewGinServer(name string, logger log.HttpLog, config *config.Config) *gin.E
 	return svr
 }
 
-func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *gin.Engine, mc MelodyChatConn, msgSubscriber *MessageSubscriber) *HttpServer {
+func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *gin.Engine, mc MelodyChatConn, msgSubscriber *MessageSubscriber, userSvc UserService) *HttpServer {
 	// TODO: 配置 jwt
 
 	return &HttpServer{
@@ -60,6 +61,7 @@ func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *
 		mc:            mc,
 		httpPort:      config.Chat.Http.Server.Port,
 		msgSubscriber: msgSubscriber,
+		userSvc:       userSvc,
 	}
 }
 

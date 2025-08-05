@@ -73,13 +73,13 @@ func InitializeGrpcClient(svcHost string) (*grpc.ClientConn, error) {
 	return client, nil
 }
 
-func NewGrpcEndpoint(conn *grpc.ClientConn, serviceName, method string, grpcReply interface{}) endpoint.Endpoint {
+func NewGrpcEndpoint(conn *grpc.ClientConn, serviceName, method string, grpcReply any) endpoint.Endpoint {
 	return grpctransport.NewClient(
 		conn,
 		serviceName,
 		method,
-		func(_ context.Context, req interface{}) (interface{}, error) { return req, nil },
-		func(_ context.Context, resp interface{}) (interface{}, error) { return resp, nil },
+		func(_ context.Context, req any) (any, error) { return req, nil },
+		func(_ context.Context, resp any) (any, error) { return resp, nil },
 		grpcReply,
 	).Endpoint()
 }
