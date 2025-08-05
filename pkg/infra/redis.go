@@ -20,10 +20,11 @@ var (
 )
 
 type RedisCache interface {
-	Get(ctx context.Context, key string, dst interface{}) (bool, error)
-	Set(ctx context.Context, key string, val interface{}) error
+	Get(ctx context.Context, key string, dst any) (bool, error)
+	Set(ctx context.Context, key string, val any) error
 	Delete(ctx context.Context, key string) error
-	HSet(ctx context.Context, key string, values ...interface{}) error
+	HSet(ctx context.Context, key string, values ...any) error
+	HGetIfKeyExists(ctx context.Context, key, field string, dst any) (bool, bool, error)
 }
 
 type RedisCacheImpl struct {
@@ -55,7 +56,7 @@ func NewRedisCacheImpl(client redis.UniversalClient) *RedisCacheImpl {
 	return &RedisCacheImpl{client: client}
 }
 
-func (rc *RedisCacheImpl) Get(ctx context.Context, key string, dst interface{}) (bool, error) {
+func (rc *RedisCacheImpl) Get(ctx context.Context, key string, dst any) (bool, error) {
 	val, err := rc.client.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return false, nil
@@ -69,7 +70,7 @@ func (rc *RedisCacheImpl) Get(ctx context.Context, key string, dst interface{}) 
 	return true, nil
 }
 
-func (rc *RedisCacheImpl) Set(ctx context.Context, key string, val interface{}) error {
+func (rc *RedisCacheImpl) Set(ctx context.Context, key string, val any) error {
 	if err := rc.client.Set(ctx, key, val, expiration).Err(); err != nil {
 		return err
 	}
@@ -83,6 +84,33 @@ func (rc *RedisCacheImpl) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
-func (rc *RedisCacheImpl) HSet(ctx context.Context, key string, values ...interface{}) error {
+func (rc *RedisCacheImpl) HSet(ctx context.Context, key string, values ...any) error {
 	return rc.client.HSet(ctx, key, values).Err()
+}
+
+var hgetIfKeyExists = redis.NewScript(`
+local key = KEYS[1]
+local field = ARGV[1]
+
+if redis.call("EXISTS", key) == 0 then
+  return ""
+end
+
+return redis.call("HGET", key, field)
+`)
+
+func (rc *RedisCacheImpl) HGetIfKeyExists(ctx context.Context, key, field string, dst any) (bool, bool, error) {
+	val, err := hgetIfKeyExists.Run(ctx, rc.client, []string{key}, field).Text()
+	if err == redis.Nil {
+		return true, false, nil
+	} else if err != nil {
+		return false, false, err
+	} else if val == "" {
+		return false, false, nil
+	} else {
+		if err = json.Unmarshal([]byte(val), dst); err != nil {
+			return false, false, err
+		}
+	}
+	return true, true, nil
 }
