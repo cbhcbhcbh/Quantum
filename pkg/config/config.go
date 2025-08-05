@@ -7,9 +7,11 @@ import (
 )
 
 type Config struct {
-	Chat  *ChatConfig  `mapstructure:"chat"`
-	Redis *RedisConfig `mapstructure:"redis"`
-	Kafka *KafkaConfig `mapstructure:"kafka"`
+	Chat      *ChatConfig      `mapstructure:"chat"`
+	Forwarder *ForwarderConfig `mapstructure:"forwarder"`
+	Redis     *RedisConfig     `mapstructure:"redis"`
+	Kafka     *KafkaConfig     `mapstructure:"kafka"`
+	Cassandra *CassandraConfig `mapstructure:"cassandra"`
 }
 
 type ChatConfig struct {
@@ -47,6 +49,14 @@ type ChatConfig struct {
 	}
 }
 
+type ForwarderConfig struct {
+	Grpc struct {
+		Server struct {
+			Port string
+		}
+	}
+}
+
 type KafkaConfig struct {
 	Addrs   string
 	Version string
@@ -60,6 +70,14 @@ type RedisConfig struct {
 	PoolSize                int
 	ReadTimeoutMilliSecond  int64
 	WriteTimeoutMilliSecond int64
+}
+
+type CassandraConfig struct {
+	Hosts    string
+	Port     int
+	User     string
+	Password string
+	Keyspace string
 }
 
 func setDefault() {
@@ -76,6 +94,8 @@ func setDefault() {
 	viper.SetDefault("chat.jwt.secret", "replaceme")
 	viper.SetDefault("chat.jwt.expirationSecond", 86400)
 
+	viper.SetDefault("forwarder.grpc.server.port", "4002")
+
 	viper.SetDefault("kafka.addrs", "localhost:9092")
 	viper.SetDefault("kafka.version", "1.0.0")
 
@@ -86,6 +106,12 @@ func setDefault() {
 	viper.SetDefault("redis.poolSize", 64)
 	viper.SetDefault("redis.readTimeoutMilliSecond", 3000)
 	viper.SetDefault("redis.writeTimeoutMilliSecond", 3000)
+
+	viper.SetDefault("cassandra.hosts", "localhost")
+	viper.SetDefault("cassandra.port", 9042)
+	viper.SetDefault("cassandra.user", "cassandra")
+	viper.SetDefault("cassandra.password", "cassandra")
+	viper.SetDefault("cassandra.keyspace", "randomchat")
 
 }
 

@@ -19,6 +19,8 @@ func InitalizeChatServer(name string) (*server.Server, error) {
 		infra.NewKafkaPublisher,
 		infra.NewKafkaSubscriber,
 
+		infra.NewCassandraSession,
+
 		chat.NewMelodyChatConn,
 		chat.NewGinServer,
 	)
