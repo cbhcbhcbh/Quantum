@@ -47,18 +47,95 @@ func (cache *UserRepoCacheImpl) GetUserByID(ctx context.Context, userID uint64) 
 }
 
 func (cache *UserRepoCacheImpl) IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error) {
+	key := util.ConstructKey(known.ChannelUsersPrefix, channelID)
+	var dummy int
+	var err error
+	channelExists, userExists, err := cache.r.HGetIfKeyExists(ctx, key, strconv.FormatUint(userID, 10), &dummy)
+	if err != nil {
+		return false, err
+	}
+	if channelExists {
+		if !userExists {
+			return false, nil
+		}
+		return true, nil
+	}
+
+	channelUserIDs, err := cache.userRepo.GetChannelUserIDs(ctx, channelID)
+	if err != nil {
+		return false, err
+	}
+	channelUserExist := false
+	var args []any
+	for _, channelUserID := range channelUserIDs {
+		if userID == channelUserID {
+			channelUserExist = true
+		}
+		args = append(args, channelUserID, 1)
+	}
+	if err := cache.r.HSet(ctx, key, args...); err != nil {
+		return channelUserExist, err
+	}
+	return channelUserExist, nil
 }
 
 func (cache *UserRepoCacheImpl) GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
+	key := util.ConstructKey(known.ChannelUsersPrefix, channelID)
+	userMap, err := cache.r.HGetAll(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	var userIDs []uint64
+	if len(userMap) > 0 {
+		for userIDStr := range userMap {
+			userID, err := strconv.ParseUint(userIDStr, 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			userIDs = append(userIDs, userID)
+		}
+	}
+
+	userIDs, err = cache.userRepo.GetChannelUserIDs(ctx, channelID)
+	if err != nil {
+		return nil, err
+	}
+	var args []any
+	for _, userID := range userIDs {
+		args = append(args, userID, 1)
+	}
+	if err := cache.r.HSet(ctx, key, args...); err != nil {
+		return userIDs, err
+	}
+	return userIDs, nil
 }
 
 func (cache *UserRepoCacheImpl) AddOnlineUser(ctx context.Context, channelID uint64, userID uint64) error {
+	key := util.ConstructKey(known.OnlineUsersPrefix, channelID)
+	return cache.r.HSet(ctx, key, strconv.FormatUint(userID, 10), 1)
 }
 
 func (cache *UserRepoCacheImpl) DeleteOnlineUser(ctx context.Context, channelID, userID uint64) error {
+	key := util.ConstructKey(known.OnlineUsersPrefix, channelID)
+	userKey := strconv.FormatUint(userID, 10)
+	return cache.r.HDel(ctx, key, userKey)
 }
 
 func (cache *UserRepoCacheImpl) GetOnlineUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
+	key := util.ConstructKey(known.OnlineUsersPrefix, channelID)
+	userMap, err := cache.r.HGetAll(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	var userIDs []uint64
+	for userIDStr := range userMap {
+		userID, err := strconv.ParseUint(userIDStr, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+	return userIDs, nil
 }
 
 type ChannelRepoCacheImpl struct {
@@ -71,7 +148,13 @@ func NewChannelRepoCacheImpl(r infra.RedisCache, channelRepo ChannelRepo) *Chann
 }
 
 func (cache *ChannelRepoCacheImpl) CreateChannel(ctx context.Context, channelID uint64) (*domain.Channel, error) {
+	return cache.channelRepo.CreateChannel(ctx, channelID)
 }
 
 func (cache *ChannelRepoCacheImpl) DeleteChannel(ctx context.Context, channelID uint64) error {
+	if err := cache.channelRepo.DeleteChannel(ctx, channelID); err != nil {
+		return err
+	}
+	// TODO： delete all channel by redis pipeline
+	return nil
 }

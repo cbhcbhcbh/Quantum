@@ -25,6 +25,8 @@ type RedisCache interface {
 	Delete(ctx context.Context, key string) error
 	HSet(ctx context.Context, key string, values ...any) error
 	HGetIfKeyExists(ctx context.Context, key, field string, dst any) (bool, bool, error)
+	HGetAll(ctx context.Context, key string) (map[string]string, error)
+	HDel(ctx context.Context, key, field string) error
 }
 
 type RedisCacheImpl struct {
@@ -113,4 +115,12 @@ func (rc *RedisCacheImpl) HGetIfKeyExists(ctx context.Context, key, field string
 		}
 	}
 	return true, true, nil
+}
+
+func (rc *RedisCacheImpl) HGetAll(ctx context.Context, key string) (map[string]string, error) {
+	return rc.client.HGetAll(ctx, key).Result()
+}
+
+func (rc *RedisCacheImpl) HDel(ctx context.Context, key, field string) error {
+	return rc.client.HDel(ctx, key, field).Err()
 }

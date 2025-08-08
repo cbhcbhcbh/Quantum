@@ -17,7 +17,7 @@ func (h *HttpServer) StartChat(c *gin.Context) {
 		return
 	}
 
-	r.
+	h.userSvc.GetUser(c.Request.Context(), userID)
 }
 
 func (h *HttpServer) GetChannelUsers(c *gin.Context) {
