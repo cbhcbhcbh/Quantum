@@ -155,6 +155,19 @@ func (cache *ChannelRepoCacheImpl) DeleteChannel(ctx context.Context, channelID 
 	if err := cache.channelRepo.DeleteChannel(ctx, channelID); err != nil {
 		return err
 	}
-	// TODO： delete all channel by redis pipeline
-	return nil
+	cmds := []infra.RedisCmd{
+		{
+			OpType: infra.DELETE,
+			Payload: infra.RedisDeletePayload{
+				Key: util.ConstructKey(known.OnlineUsersPrefix, channelID),
+			},
+		},
+		{
+			OpType: infra.DELETE,
+			Payload: infra.RedisDeletePayload{
+				Key: util.ConstructKey(known.ChannelUsersPrefix, channelID),
+			},
+		},
+	}
+	return cache.r.ExecPipeLine(ctx, &cmds)
 }
