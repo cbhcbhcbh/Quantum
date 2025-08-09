@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"go.uber.org/zap"
 
+	"github.com/cbhcbhcbh/Quantum/pkg/common/domain"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/jwt"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/known"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/log"
@@ -32,18 +34,24 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := jwt.NewJWT().ParseToken(parts[1])
+		authResult, err := jwt.Auth(
+			&jwt.AuthPayload{
+				AccessToken: parts[1],
+			},
+		)
 		if err != nil {
 			response.ErrorResponse(http.StatusUnauthorized, err.Error()).SetHttpCode(http.StatusUnauthorized).WriteTo(c)
 			c.Abort()
 			return
 		}
 
-		c.Set(known.XIdKey, claims.ID)
-		c.Set(known.XUidKey, claims.UID)
-		c.Set(known.XUsernameKey, claims.Name)
-		c.Set(known.XEmailKey, claims.Email)
-
+		if authResult.Expired {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrResponse{
+				Message: known.ErrTokenExpired.Error(),
+			})
+			return
+		}
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), known.ChannelKey, authResult.ChannelID))
 		c.Next()
 	}
 }
