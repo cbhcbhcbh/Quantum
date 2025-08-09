@@ -3,6 +3,7 @@ package wire
 import (
 	"github.com/cbhcbhcbh/Quantum/pkg/chat"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/server"
+	"github.com/cbhcbhcbh/Quantum/pkg/common/sonyflake"
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
 	"github.com/cbhcbhcbh/Quantum/pkg/infra"
 	"github.com/google/wire"
@@ -20,6 +21,8 @@ func InitalizeChatServer(name string) (*server.Server, error) {
 		infra.NewKafkaSubscriber,
 
 		infra.NewCassandraSession,
+
+		sonyflake.NewSonyFlake,
 
 		chat.NewMelodyChatConn,
 		chat.NewGinServer,
