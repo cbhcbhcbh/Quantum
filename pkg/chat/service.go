@@ -30,7 +30,12 @@ func NewUserServiceImpl(userRepo UserRepoCache) *UserServiceImpl {
 	return &UserServiceImpl{userRepo}
 }
 
-func (svc *UserServiceImpl) AddUserToChannel(ctx context.Context, channelID, userID uint64) error {}
+func (svc *UserServiceImpl) AddUserToChannel(ctx context.Context, channelID, userID uint64) error {
+	if err := svc.userRepo.AddUserToChannel(ctx, channelID, userID); err != nil {
+		return fmt.Errorf("error add user %d to channel %d: %w", userID, channelID, err)
+	}
+	return nil
+}
 
 func (svc *UserServiceImpl) GetUser(ctx context.Context, userID uint64) (*domain.User, error) {
 	user, err := svc.userRepo.GetUserByID(ctx, userID)
@@ -56,9 +61,24 @@ func (svc *UserServiceImpl) GetChannelUserIDs(ctx context.Context, channelID uin
 	return users, nil
 }
 
-func (svc *UserServiceImpl) AddOnlineUser(ctx context.Context, channelID, userID uint64) error {}
+func (svc *UserServiceImpl) AddOnlineUser(ctx context.Context, channelID, userID uint64) error {
+	if err := svc.userRepo.AddOnlineUser(ctx, channelID, userID); err != nil {
+		return fmt.Errorf("error add online user %d to channel %d: %w", userID, channelID, err)
+	}
+	return nil
+}
 
-func (svc *UserServiceImpl) DeleteOnlineUser(ctx context.Context, channelID, userID uint64) error {}
+func (svc *UserServiceImpl) DeleteOnlineUser(ctx context.Context, channelID, userID uint64) error {
+	if err := svc.userRepo.DeleteOnlineUser(ctx, channelID, userID); err != nil {
+		return fmt.Errorf("error delete online user %d from channel %d: %w", userID, channelID, err)
+	}
+	return nil
+}
 
 func (svc *UserServiceImpl) GetOnlineUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
+	users, err := svc.userRepo.GetOnlineUserIDs(ctx, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("error get online users in channel %d: %w", channelID, err)
+	}
+	return users, nil
 }
