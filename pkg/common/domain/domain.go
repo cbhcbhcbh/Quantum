@@ -5,6 +5,14 @@ import (
 	"strconv"
 )
 
+type ErrResponse struct {
+	Message string `json:"msg"`
+}
+
+type UserIDsPresenter struct {
+	UserIDs []string `json:"user_ids"`
+}
+
 type User struct {
 	ID   uint64
 	Name string
@@ -14,6 +22,24 @@ type Channel struct {
 	ID          uint64
 	AccessToken string
 }
+
+const (
+	EventText = iota
+	EventAction
+	EventSeen
+	EventFile
+)
+
+type Action string
+
+var (
+	WaitingMessage   Action = "waiting"
+	JoinedMessage    Action = "joined"
+	IsTypingMessage  Action = "istyping"
+	EndTypingMessage Action = "endtyping"
+	OfflineMessage   Action = "offline"
+	LeavedMessage    Action = "leaved"
+)
 
 type Message struct {
 	MessageID uint64 `json:"message_id"`
@@ -43,6 +69,11 @@ func (m *Message) ToPresenter() *MessagePresenter {
 		Seen:      m.Seen,
 		Time:      m.Time,
 	}
+}
+
+func (m *Message) Encode() []byte {
+	result, _ := json.Marshal(m)
+	return result
 }
 
 func (m *MessagePresenter) Encode() []byte {

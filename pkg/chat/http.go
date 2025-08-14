@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/cbhcbhcbh/Quantum/pkg/common/jwt"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/log"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/middleware"
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
@@ -32,6 +33,7 @@ type HttpServer struct {
 	httpServer    *http.Server
 	msgSubscriber *MessageSubscriber
 	userSvc       UserService
+	chanSvc       ChannelService
 }
 
 func NewMelodyChatConn(config *config.Config) MelodyChatConn {
@@ -51,8 +53,8 @@ func NewGinServer(name string, logger log.HttpLog, config *config.Config) *gin.E
 	return svr
 }
 
-func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *gin.Engine, mc MelodyChatConn, msgSubscriber *MessageSubscriber, userSvc UserService) *HttpServer {
-	// TODO: 配置 jwt
+func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *gin.Engine, mc MelodyChatConn, msgSubscriber *MessageSubscriber, userSvc UserService, chanSvc ChannelService) *HttpServer {
+	initJWT(config)
 
 	return &HttpServer{
 		name:          name,
@@ -62,7 +64,13 @@ func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *
 		httpPort:      config.Chat.Http.Server.Port,
 		msgSubscriber: msgSubscriber,
 		userSvc:       userSvc,
+		chanSvc:       chanSvc,
 	}
+}
+
+func initJWT(config *config.Config) {
+	jwt.JwtSecret = config.Chat.JWT.Secret
+	jwt.JwtExpirationSecond = config.Chat.JWT.ExpirationSecond
 }
 
 func (h *HttpServer) RegisterRoutes() {
@@ -86,7 +94,6 @@ func (h *HttpServer) RegisterRoutes() {
 			channelGroup.DELETE("", h.DeleteChannel)
 		}
 	}
-
 }
 
 func (h *HttpServer) Run() {

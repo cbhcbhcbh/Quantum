@@ -3,6 +3,8 @@ package chat
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/cbhcbhcbh/Quantum/pkg/common/domain"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/sonyflake"
@@ -37,6 +39,136 @@ type ChannelService interface {
 type ForwardService interface {
 	RegisterChannelSession(ctx context.Context, channelID, userID uint64, subscriber string) error
 	RemoveChannelSession(ctx context.Context, channelID, userID uint64) error
+}
+
+type MessageServiceImpl struct {
+	msgRepo  MessageRepoCache
+	userRepo UserRepoCache
+	sf       sonyflake.IDGenerator
+}
+
+func NewMessageServiceImpl(msgRepo MessageRepoCache, userRepo UserRepoCache, sf sonyflake.IDGenerator) *MessageServiceImpl {
+	return &MessageServiceImpl{msgRepo, userRepo, sf}
+}
+
+func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error {
+	messageID, err := svc.sf.NextID()
+	if err != nil {
+		return fmt.Errorf("error create snowflake ID for text message: %w", err)
+	}
+	msg := domain.Message{
+		MessageID: messageID,
+		Event:     domain.EventText,
+		ChannelID: channelID,
+		UserID:    userID,
+		Payload:   payload,
+		Time:      time.Now().UnixMilli(),
+	}
+	if err := svc.msgRepo.InsertMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error broadcast text message: %w", err)
+	}
+	if err := svc.PublishMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error broadcast text message: %w", err)
+	}
+	return nil
+}
+
+func (svc *MessageServiceImpl) BroadcastConnectMessage(ctx context.Context, channelID, userID uint64) error {
+	onnlineUserIDs, err := svc.userRepo.GetOnlineUserIDs(context.Background(), channelID)
+	if err != nil {
+		return fmt.Errorf("error get online user ids from channel %d: %w", channelID, err)
+	}
+	if len(onnlineUserIDs) == 1 {
+		return svc.BroadcastActionMessage(ctx, channelID, userID, domain.WaitingMessage)
+	}
+	return svc.BroadcastActionMessage(ctx, channelID, userID, domain.JoinedMessage)
+}
+
+func (svc *MessageServiceImpl) BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action domain.Action) error {
+	eventMessageID, err := svc.sf.NextID()
+	if err != nil {
+		return fmt.Errorf("error create snowflake ID for action message: %w", err)
+	}
+	msg := domain.Message{
+		MessageID: eventMessageID,
+		Event:     domain.EventAction,
+		ChannelID: channelID,
+		UserID:    userID,
+		Payload:   string(action),
+		Time:      time.Now().UnixMilli(),
+	}
+	if err := svc.PublishMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error broadcast action message: %w", err)
+	}
+	return nil
+}
+
+func (svc *MessageServiceImpl) BroadcastFileMessage(ctx context.Context, channelID, userID uint64, payload string) error {
+	messageID, err := svc.sf.NextID()
+	if err != nil {
+		return fmt.Errorf("error create snowflake ID for file message: %w", err)
+	}
+	msg := domain.Message{
+		MessageID: messageID,
+		Event:     domain.EventFile,
+		ChannelID: channelID,
+		UserID:    userID,
+		Payload:   payload,
+		Time:      time.Now().UnixMilli(),
+	}
+	if err := svc.msgRepo.InsertMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error broadcast file message: %w", err)
+	}
+	if err := svc.PublishMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error broadcast file message: %w", err)
+	}
+	return nil
+}
+
+// FIXME：seen method
+func (svc *MessageServiceImpl) MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error {
+	if err := svc.msgRepo.MarkMessageSeen(ctx, channelID, messageID); err != nil {
+		return fmt.Errorf("error mark message %d seen in channel %d: %w", messageID, channelID, err)
+	}
+	eventMessageID, err := svc.sf.NextID()
+	if err != nil {
+		return fmt.Errorf("error create snowflake ID for seen event message: %w", err)
+	}
+	msg := domain.Message{
+		MessageID: eventMessageID,
+		Event:     domain.EventSeen,
+		ChannelID: channelID,
+		UserID:    userID,
+		Payload:   strconv.FormatUint(messageID, 10),
+		Seen:      true,
+		Time:      time.Now().UnixMilli(),
+	}
+	if err := svc.PublishMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error mark message %d seen in channel %d: %w", messageID, channelID, err)
+	}
+	return nil
+}
+
+func (svc *MessageServiceImpl) InsertMessage(ctx context.Context, msg *domain.Message) error {
+	if err := svc.msgRepo.InsertMessage(ctx, msg); err != nil {
+		return fmt.Errorf("error insert message: %w", err)
+	}
+	return nil
+}
+
+func (svc *MessageServiceImpl) PublishMessage(ctx context.Context, msg *domain.Message) error {
+	if err := svc.msgRepo.PublishMessage(ctx, msg); err != nil {
+		return fmt.Errorf("error publish message: %w", err)
+	}
+	return nil
+}
+
+func (svc *MessageServiceImpl) ListMessages(ctx context.Context, channelID uint64, pageState string) ([]*domain.Message, string, error) {
+	msgs, nextPageState, err := svc.msgRepo.ListMessages(ctx, channelID, pageState)
+	if err != nil {
+		return nil, "", fmt.Errorf("error list messages in channel %d with page state %s: %w", channelID, pageState, err)
+	}
+	return msgs, nextPageState, nil
 }
 
 type UserServiceImpl struct {

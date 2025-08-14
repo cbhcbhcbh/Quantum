@@ -20,6 +20,13 @@ type UserRepoCache interface {
 	GetOnlineUserIDs(ctx context.Context, channelID uint64) ([]uint64, error)
 }
 
+type MessageRepoCache interface {
+	InsertMessage(ctx context.Context, msg *domain.Message) error
+	MarkMessageSeen(ctx context.Context, channelID, messageID uint64) error
+	PublishMessage(ctx context.Context, msg *domain.Message) error
+	ListMessages(ctx context.Context, channelID uint64, pageStateStr string) ([]*domain.Message, string, error)
+}
+
 type ChannelRepoCache interface {
 	CreateChannel(ctx context.Context, channelID uint64) (*domain.Channel, error)
 	DeleteChannel(ctx context.Context, channelID uint64) error
@@ -136,6 +143,26 @@ func (cache *UserRepoCacheImpl) GetOnlineUserIDs(ctx context.Context, channelID 
 		userIDs = append(userIDs, userID)
 	}
 	return userIDs, nil
+}
+
+type MessageRepoCacheImpl struct {
+	messageRepo MessageRepo
+}
+
+func (cache *MessageRepoCacheImpl) InsertMessage(ctx context.Context, msg *domain.Message) error {
+	return cache.messageRepo.InsertMessage(ctx, msg)
+}
+
+func (cache *MessageRepoCacheImpl) MarkMessageSeen(ctx context.Context, channelID, messageID uint64) error {
+	return cache.messageRepo.MarkMessageSeen(ctx, channelID, messageID)
+}
+
+func (cache *MessageRepoCacheImpl) PublishMessage(ctx context.Context, msg *domain.Message) error {
+	return cache.messageRepo.PublishMessage(ctx, msg)
+}
+
+func (cache *MessageRepoCacheImpl) ListMessages(ctx context.Context, channelID uint64, pageStateStr string) ([]*domain.Message, string, error) {
+	return cache.messageRepo.ListMessages(ctx, channelID, pageStateStr)
 }
 
 type ChannelRepoCacheImpl struct {
