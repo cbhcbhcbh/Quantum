@@ -5,7 +5,19 @@ import (
 	"fmt"
 
 	"github.com/cbhcbhcbh/Quantum/pkg/common/domain"
+	"github.com/cbhcbhcbh/Quantum/pkg/common/sonyflake"
 )
+
+type MessageService interface {
+	BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error
+	BroadcastConnectMessage(ctx context.Context, channelID, userID uint64) error
+	BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action domain.Action) error
+	BroadcastFileMessage(ctx context.Context, channelID, userID uint64, payload string) error
+	MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error
+	InsertMessage(ctx context.Context, msg *domain.Message) error
+	PublishMessage(ctx context.Context, msg *domain.Message) error
+	ListMessages(ctx context.Context, channelID uint64, pageState string) ([]*domain.Message, string, error)
+}
 
 type UserService interface {
 	AddUserToChannel(ctx context.Context, channelID, userID uint64) error
@@ -20,6 +32,11 @@ type UserService interface {
 type ChannelService interface {
 	CreateChannel(ctx context.Context) (*domain.Channel, error)
 	DeleteChannel(ctx context.Context, channelID uint64) error
+}
+
+type ForwardService interface {
+	RegisterChannelSession(ctx context.Context, channelID, userID uint64, subscriber string) error
+	RemoveChannelSession(ctx context.Context, channelID, userID uint64) error
 }
 
 type UserServiceImpl struct {
@@ -81,4 +98,48 @@ func (svc *UserServiceImpl) GetOnlineUserIDs(ctx context.Context, channelID uint
 		return nil, fmt.Errorf("error get online users in channel %d: %w", channelID, err)
 	}
 	return users, nil
+}
+
+type ChannelServiceImpl struct {
+	channelRepo ChannelRepoCache
+	userRepo    UserRepoCache
+	sf          sonyflake.IDGenerator
+}
+
+func NewChannelServiceImpl(chanRepo ChannelRepoCache, userRepo UserRepoCache, sf sonyflake.IDGenerator) *ChannelServiceImpl {
+	return &ChannelServiceImpl{chanRepo, userRepo, sf}
+}
+
+func (svc *ChannelServiceImpl) CreateChannel(ctx context.Context) (*domain.Channel, error) {
+	channelID, err := svc.sf.NextID()
+	if err != nil {
+		return nil, fmt.Errorf("error create snowflake ID for new channel: %w", err)
+	}
+	channel, err := svc.channelRepo.CreateChannel(ctx, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("error create channel %d: %w", channelID, err)
+	}
+	return channel, nil
+}
+
+func (svc *ChannelServiceImpl) DeleteChannel(ctx context.Context, channelID uint64) error {
+	if err := svc.channelRepo.DeleteChannel(ctx, channelID); err != nil {
+		return fmt.Errorf("error delete channel %d: %w", channelID, err)
+	}
+	return nil
+}
+
+type ForwardServiceImpl struct {
+	forwardRepo ForwardRepo
+}
+
+func NewForwardServiceImpl(forwardRepo ForwardRepo) *ForwardServiceImpl {
+	return &ForwardServiceImpl{forwardRepo}
+}
+
+func (svc *ForwardServiceImpl) RegisterChannelSession(ctx context.Context, channelID, userID uint64, subscriber string) error {
+	return svc.forwardRepo.RegisterChannelSession(ctx, channelID, userID, subscriber)
+}
+func (svc *ForwardServiceImpl) RemoveChannelSession(ctx context.Context, channelID, userID uint64) error {
+	return svc.forwardRepo.RemoveChannelSession(ctx, channelID, userID)
 }
