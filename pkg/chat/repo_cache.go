@@ -149,6 +149,10 @@ type MessageRepoCacheImpl struct {
 	messageRepo MessageRepo
 }
 
+func NewMessageRepoCacheImpl(messageRepo MessageRepo) *MessageRepoCacheImpl {
+	return &MessageRepoCacheImpl{messageRepo}
+}
+
 func (cache *MessageRepoCacheImpl) InsertMessage(ctx context.Context, msg *domain.Message) error {
 	return cache.messageRepo.InsertMessage(ctx, msg)
 }

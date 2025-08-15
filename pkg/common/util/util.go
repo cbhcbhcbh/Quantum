@@ -21,6 +21,14 @@ func DecodeToMessage(data []byte) (*domain.Message, error) {
 	return &msg, nil
 }
 
+func DecodeToMessagePresenter(data []byte) (*domain.MessagePresenter, error) {
+	var msg domain.MessagePresenter
+	if err := json.Unmarshal(data, &msg); err != nil {
+		return nil, err
+	}
+	return &msg, nil
+}
+
 func GetDurationInMillseconds(start time.Time) float64 {
 	end := time.Now()
 	duration := end.Sub(start)

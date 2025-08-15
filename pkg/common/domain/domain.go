@@ -3,7 +3,14 @@ package domain
 import (
 	"encoding/json"
 	"strconv"
+
+	"github.com/cbhcbhcbh/Quantum/pkg/common/jwt"
+	"github.com/cbhcbhcbh/Quantum/pkg/common/known"
 )
+
+type SuccessMessage struct {
+	Message string `json:"msg" example:"ok"`
+}
 
 type ErrResponse struct {
 	Message string `json:"msg"`
@@ -60,6 +67,11 @@ type MessagePresenter struct {
 	Time      int64  `json:"time"`
 }
 
+type MessagesPresenter struct {
+	NextPageState string             `json:"next_ps"`
+	Messages      []MessagePresenter `json:"messages"`
+}
+
 func (m *Message) ToPresenter() *MessagePresenter {
 	return &MessagePresenter{
 		MessageID: strconv.FormatUint(m.MessageID, 10),
@@ -69,6 +81,30 @@ func (m *Message) ToPresenter() *MessagePresenter {
 		Seen:      m.Seen,
 		Time:      m.Time,
 	}
+}
+
+func (m *MessagePresenter) ToMessage(accessToken string) (*Message, error) {
+	authResult, err := jwt.Auth(&jwt.AuthPayload{
+		AccessToken: accessToken,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if authResult.Expired {
+		return nil, known.ErrTokenExpired
+	}
+	channelID := authResult.ChannelID
+	userID, err := strconv.ParseUint(m.UserID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return &Message{
+		Event:     m.Event,
+		ChannelID: channelID,
+		UserID:    userID,
+		Payload:   m.Payload,
+		Time:      m.Time,
+	}, nil
 }
 
 func (m *Message) Encode() []byte {

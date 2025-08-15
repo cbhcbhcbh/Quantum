@@ -32,8 +32,10 @@ type HttpServer struct {
 	httpPort      string
 	httpServer    *http.Server
 	msgSubscriber *MessageSubscriber
+	msgSvc        MessageService
 	userSvc       UserService
 	chanSvc       ChannelService
+	forwardSvc    ForwardService
 }
 
 func NewMelodyChatConn(config *config.Config) MelodyChatConn {
@@ -94,6 +96,10 @@ func (h *HttpServer) RegisterRoutes() {
 			channelGroup.DELETE("", h.DeleteChannel)
 		}
 	}
+
+	h.mc.HandleConnect(h.HandleChatOnConnect)
+	h.mc.HandleMessage(h.HandleChatOnMessage)
+	h.mc.HandleClose(h.HandleChatOnClose)
 }
 
 func (h *HttpServer) Run() {
