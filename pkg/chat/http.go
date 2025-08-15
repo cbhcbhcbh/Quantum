@@ -55,7 +55,7 @@ func NewGinServer(name string, logger log.HttpLog, config *config.Config) *gin.E
 	return svr
 }
 
-func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *gin.Engine, mc MelodyChatConn, msgSubscriber *MessageSubscriber, userSvc UserService, chanSvc ChannelService) *HttpServer {
+func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *gin.Engine, mc MelodyChatConn, msgSubscriber *MessageSubscriber, userSvc UserService, msgSvc MessageService, chanSvc ChannelService, forwardSvc ForwardService) *HttpServer {
 	initJWT(config)
 
 	return &HttpServer{

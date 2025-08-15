@@ -22,7 +22,7 @@ type GrpcServer struct {
 	chatpb.UnimplementedUserServiceServer
 }
 
-func NewGrpcServer(name string, logger log.GrpcLog, config *config.Config) *GrpcServer {
+func NewGrpcServer(name string, logger log.GrpcLog, config *config.Config, userSvc UserService, chanSvc ChannelService) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort: config.Chat.Grpc.Server.Port,
 		logger:   logger,
@@ -52,8 +52,9 @@ func (srv *GrpcServer) Run() {
 	}()
 }
 
-func (srv *GrpcServer) GracefulStop() {
+func (srv *GrpcServer) GracefulStop() error {
 	srv.s.GetServiceInfo()
+	return nil
 }
 
 var UserConn *UserClientConn

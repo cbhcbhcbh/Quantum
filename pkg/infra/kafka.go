@@ -63,3 +63,9 @@ func NewKafkaSubscriber(config *config.Config) (message.Subscriber, error) {
 
 	return kafkaSubscriber, nil
 }
+
+// TODO: implement more concere router
+func NewSimpleRouter() *message.Router {
+	router, _ := message.NewRouter(message.RouterConfig{}, logger)
+	return router
+}
