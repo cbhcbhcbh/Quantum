@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Chat      *ChatConfig      `mapstructure:"chat"`
+	User      *UserConfig      `mapstructure:"user"`
 	Forwarder *ForwarderConfig `mapstructure:"forwarder"`
 	Redis     *RedisConfig     `mapstructure:"redis"`
 	Kafka     *KafkaConfig     `mapstructure:"kafka"`
@@ -46,6 +47,21 @@ type ChatConfig struct {
 	JWT struct {
 		Secret           string
 		ExpirationSecond int64
+	}
+}
+
+type UserConfig struct {
+	Http struct {
+		Server struct {
+			Port    string
+			MaxConn int64
+			Swag    bool
+		}
+	}
+	Grpc struct {
+		Server struct {
+			Port string
+		}
 	}
 }
 
