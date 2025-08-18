@@ -14,6 +14,11 @@ const (
 	XEmailKey = "X-Email"
 )
 
+const (
+	OAuthStateCookieName string = "oauthstate"
+	SessionIdCookieName  string = "sid"
+)
+
 type HTTPContextKey string
 
 var (
