@@ -63,6 +63,14 @@ type UserConfig struct {
 			Port string
 		}
 	}
+	OAuth struct {
+		Google struct {
+			ClientID     string
+			ClientSecret string
+			RedirectUrl  string
+			Scopes       []string
+		}
+	}
 }
 
 type ForwarderConfig struct {
