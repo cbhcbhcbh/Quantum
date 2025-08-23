@@ -34,11 +34,14 @@ var (
 	ErrUnauthorized = errors.New("unauthorized")
 
 	ErrUserNotFound           = errors.New("error user not found")
+	ErrSessionNotFound = errors.New("error session not found")
 	ErrChannelOrUserNotFound  = errors.New("error channel or user not found")
 	ErrExceedMessageNumLimits = errors.New("error exceed max number of messages")
 
 	ErrInvalidToken = errors.New("invalid token")
 	ErrTokenExpired = errors.New("token expired")
+
+	ErrInvalidOauth = errors.New("invalid oauth google state")
 )
 
 var (
