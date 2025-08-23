@@ -50,6 +50,12 @@ type ChatConfig struct {
 	}
 }
 
+type CookieConfig struct {
+	MaxAge int
+	Path   string
+	Domain string
+}
+
 type UserConfig struct {
 	Http struct {
 		Server struct {
@@ -64,12 +70,16 @@ type UserConfig struct {
 		}
 	}
 	OAuth struct {
+		Cookie CookieConfig
 		Google struct {
 			ClientID     string
 			ClientSecret string
 			RedirectUrl  string
 			Scopes       []string
 		}
+	}
+	Auth struct {
+		Cookie CookieConfig
 	}
 }
 

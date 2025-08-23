@@ -5,11 +5,14 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/cbhcbhcbh/Quantum/pkg/common/domain"
+	"github.com/cbhcbhcbh/Quantum/pkg/common/known"
+	"github.com/cbhcbhcbh/Quantum/pkg/common/sonyflake"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/util"
 )
 
@@ -17,6 +20,8 @@ const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v3/userinfo?access_
 
 type UserService interface {
 	GetGoogleUser(ctx context.Context, code string) (*domain.GoogleUserPresenter, error)
+	GetOrCreateUserByOAuth(ctx context.Context, user *User) (*User, error)
+	CreateUser(ctx context.Context, user *User) (*User, error)
 	SetUserSession(ctx context.Context, uid uint64) (string, error)
 	GetUserByID(ctx context.Context, uid uint64) (*User, error)
 	GetUserIDBySession(ctx context.Context, sid string) (uint64, error)
@@ -24,6 +29,7 @@ type UserService interface {
 
 type UserServiceImpl struct {
 	userRepo UserRepo
+	sf       sonyflake.IDGenerator
 }
 
 func NewUserServiceImpl(userRepo UserRepo) *UserServiceImpl {
@@ -53,6 +59,50 @@ func (svc *UserServiceImpl) GetGoogleUser(ctx context.Context, code string) (*do
 		return nil, err
 	}
 	return &googleUser, nil
+}
+
+func (svc *UserServiceImpl) GetOrCreateUserByOAuth(ctx context.Context, user *User) (*User, error) {
+	existedUser, err := svc.userRepo.GetUserByOAuthEmail(ctx, user.AuthType, user.Email)
+	if err != nil {
+		if !errors.Is(err, known.ErrUserNotFound) {
+			return nil, fmt.Errorf("error get user by google email %s: %w", user.Email, err)
+		}
+		userID, err := svc.sf.NextID()
+		if err != nil {
+			return nil, fmt.Errorf("error create snowflake ID: %w", err)
+		}
+		newUser := &User{
+			ID:       userID,
+			Email:    user.Email,
+			Name:     user.Name,
+			Picture:  user.Picture,
+			AuthType: user.AuthType,
+		}
+		if err := svc.userRepo.CreateUser(ctx, newUser); err != nil {
+			return nil, fmt.Errorf("error create user by google email %s: %w", newUser.Email, err)
+		}
+		return newUser, nil
+	}
+	return existedUser, nil
+}
+
+func (svc *UserServiceImpl) CreateUser(ctx context.Context, user *User) (*User, error) {
+	userID, err := svc.sf.NextID()
+	if err != nil {
+		return nil, fmt.Errorf("error create snowflake ID: %w", err)
+	}
+	newUser := &User{
+		ID:       userID,
+		Email:    user.Email,
+		Name:     user.Name,
+		Picture:  user.Picture,
+		AuthType: user.AuthType,
+	}
+	err = svc.userRepo.CreateUser(ctx, newUser)
+	if err != nil {
+		return nil, fmt.Errorf("error create user %d: %w", userID, err)
+	}
+	return newUser, nil
 }
 
 func (svc *UserServiceImpl) SetUserSession(ctx context.Context, uid uint64) (string, error) {

@@ -20,8 +20,11 @@ type HttpServer struct {
 	svr        *gin.Engine
 	httpPort   string
 	httpServer *http.Server
+	userSvc    UserService
 
 	googleOauthConfig *oauth2.Config
+	oauthCookieConfig config.CookieConfig
+	authCookieConfig  config.CookieConfig
 }
 
 func NewGinServer(name string, logger log.HttpLog, config *config.Config) *gin.Engine {
@@ -47,6 +50,8 @@ func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *
 			Scopes:       config.User.OAuth.Google.Scopes,
 			Endpoint:     google.Endpoint,
 		},
+		oauthCookieConfig: config.User.OAuth.Cookie,
+		authCookieConfig:  config.User.Auth.Cookie,
 	}
 }
 
