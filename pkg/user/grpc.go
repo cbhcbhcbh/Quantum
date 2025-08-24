@@ -17,14 +17,16 @@ type GrpcServer struct {
 	grpcPort string
 	logger   log.GrpcLog
 	s        *grpc.Server
+	userSvc  UserService
 
 	userpb.UnimplementedUserServiceServer
 }
 
-func NewGrpcServer(name string, logger log.GrpcLog, config *config.Config) *GrpcServer {
+func NewGrpcServer(name string, logger log.GrpcLog, config *config.Config, userSvc UserService) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort: config.User.Grpc.Server.Port,
 		logger:   logger,
+		userSvc:  userSvc,
 	}
 	srv.s = transport.InitializeGrpcServer(name, srv.logger)
 	return srv
