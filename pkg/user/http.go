@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/cbhcbhcbh/Quantum/pkg/common/cookie"
+	"github.com/cbhcbhcbh/Quantum/pkg/common/known"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/log"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/middleware"
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
@@ -55,10 +57,32 @@ func NewHttpServer(name string, logger log.HttpLog, config *config.Config, svr *
 	}
 }
 
+func (h *HttpServer) CookieAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sid, err := cookie.GetCookie(c, known.SessionIdCookieName)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		userID, err := h.userSvc.GetUserIDBySession(c.Request.Context(), sid)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), known.UserKey, userID))
+		c.Next()
+	}
+}
+
 func (h *HttpServer) RegisterRoutes() {
 	userGroup := h.svr.Group("/api/user")
 	{
 		userGroup.POST("", h.CreateLocalUser)
+
+		cookieAuthGroup := userGroup.Group("")
+		cookieAuthGroup.Use(h.CookieAuth())
+		cookieAuthGroup.GET("", h.GetUser)
+		cookieAuthGroup.GET("/me", h.GetUserMe)
 
 		userGroup.GET("/oauth2/google/login", h.OAuthGoogleLogin)
 		userGroup.GET("/oauth2/google/callback", h.OAuthGoogleCallback)

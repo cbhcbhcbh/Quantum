@@ -11,6 +11,7 @@ import (
 	"github.com/cbhcbhcbh/Quantum/pkg/common/sonyflake"
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
 	"github.com/cbhcbhcbh/Quantum/pkg/infra"
+	"github.com/cbhcbhcbh/Quantum/pkg/user"
 	"github.com/google/wire"
 )
 
@@ -20,7 +21,7 @@ func InitializeChatServer(name string) (*server.Server, error) {
 		log.NewHttpLog,
 		log.NewGrpcLog,
 
-		infra.NewredisClient,
+		infra.NewRedisClient,
 		infra.NewRedisCacheImpl,
 		wire.Bind(new(infra.RedisCache), new(*infra.RedisCacheImpl)),
 
@@ -77,5 +78,38 @@ func InitializeChatServer(name string) (*server.Server, error) {
 		server.NewServer,
 	)
 
+	return &server.Server{}, nil
+}
+
+func InitializeUserServer(name string) (*server.Server, error) {
+	wire.Build(
+		config.NewConfig,
+		log.NewHttpLog,
+		log.NewGrpcLog,
+
+		infra.NewRedisClient,
+		infra.NewRedisCacheImpl,
+		wire.Bind(new(infra.RedisCache), new(*infra.RedisCacheImpl)),
+
+		user.NewUserRepoImpl,
+		wire.Bind(new(user.UserRepo), new(*user.UserRepoImpl)),
+
+		sonyflake.NewSonyFlake,
+
+		user.NewUserServiceImpl,
+		wire.Bind(new(user.UserService), new(*user.UserServiceImpl)),
+
+		user.NewGinServer,
+
+		user.NewHttpServer,
+		wire.Bind(new(server.HttpServer), new(*user.HttpServer)),
+		user.NewGrpcServer,
+		wire.Bind(new(server.GrpcServer), new(*user.GrpcServer)),
+		user.NewRouter,
+		wire.Bind(new(server.Router), new(*user.Router)),
+		user.NewInfraCloser,
+		wire.Bind(new(server.InfraCloser), new(*user.InfraCloser)),
+		server.NewServer,
+	)
 	return &server.Server{}, nil
 }

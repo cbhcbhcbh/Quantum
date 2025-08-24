@@ -13,6 +13,7 @@ import (
 	"github.com/cbhcbhcbh/Quantum/pkg/common/sonyflake"
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
 	"github.com/cbhcbhcbh/Quantum/pkg/infra"
+	"github.com/cbhcbhcbh/Quantum/pkg/user"
 )
 
 // Injectors from wire.go:
@@ -37,7 +38,7 @@ func InitializeChatServer(name string) (*server.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	universalClient, err := infra.NewredisClient(configConfig)
+	universalClient, err := infra.NewRedisClient(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -82,5 +83,38 @@ func InitializeChatServer(name string) (*server.Server, error) {
 	chatRouter := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
 	serverServer := server.NewServer(name, chatRouter, infraCloser)
+	return serverServer, nil
+}
+
+func InitializeUserServer(name string) (*server.Server, error) {
+	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	httpLog, err := log.NewHttpLog(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	engine := user.NewGinServer(name, httpLog, configConfig)
+	httpServer := user.NewHttpServer(name, httpLog, configConfig, engine)
+	grpcLog, err := log.NewGrpcLog(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	universalClient, err := infra.NewRedisClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	redisCacheImpl := infra.NewRedisCacheImpl(universalClient)
+	userRepoImpl := user.NewUserRepoImpl(redisCacheImpl)
+	idGenerator, err := sonyflake.NewSonyFlake()
+	if err != nil {
+		return nil, err
+	}
+	userServiceImpl := user.NewUserServiceImpl(userRepoImpl, idGenerator)
+	grpcServer := user.NewGrpcServer(name, grpcLog, configConfig, userServiceImpl)
+	router := user.NewRouter(httpServer, grpcServer)
+	infraCloser := user.NewInfraCloser()
+	serverServer := server.NewServer(name, router, infraCloser)
 	return serverServer, nil
 }

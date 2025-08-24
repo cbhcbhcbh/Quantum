@@ -78,7 +78,7 @@ type RedisPipelineCmd struct {
 	Cmd    any
 }
 
-func NewredisClient(config *config.Config) (redis.UniversalClient, error) {
+func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 	expiration = time.Duration(config.Redis.ExpirationHour) * time.Hour
 	RedisClient = redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:          util.GetServerAddrs(config.Redis.Addrs),

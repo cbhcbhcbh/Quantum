@@ -32,9 +32,10 @@ type UserServiceImpl struct {
 	sf       sonyflake.IDGenerator
 }
 
-func NewUserServiceImpl(userRepo UserRepo) *UserServiceImpl {
+func NewUserServiceImpl(userRepo UserRepo, sf sonyflake.IDGenerator) *UserServiceImpl {
 	return &UserServiceImpl{
 		userRepo: userRepo,
+		sf:       sf,
 	}
 }
 
