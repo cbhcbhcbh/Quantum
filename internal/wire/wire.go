@@ -12,8 +12,27 @@ import (
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
 	"github.com/cbhcbhcbh/Quantum/pkg/infra"
 	"github.com/cbhcbhcbh/Quantum/pkg/user"
+	"github.com/cbhcbhcbh/Quantum/pkg/web"
 	"github.com/google/wire"
 )
+
+func InitializeWebServer(name string) (*server.Server, error) {
+	wire.Build(
+		config.NewConfig,
+		log.NewHttpLog,
+
+		web.NewGinServer,
+
+		web.NewHttpServer,
+		wire.Bind(new(server.HttpServer), new(*web.HttpServer)),
+		web.NewRouter,
+		wire.Bind(new(server.Router), new(*web.Router)),
+		web.NewInfraCloser,
+		wire.Bind(new(server.InfraCloser), new(*web.InfraCloser)),
+		server.NewServer,
+	)
+	return &server.Server{}, nil
+}
 
 func InitializeChatServer(name string) (*server.Server, error) {
 	wire.Build(

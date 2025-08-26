@@ -14,9 +14,27 @@ import (
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
 	"github.com/cbhcbhcbh/Quantum/pkg/infra"
 	"github.com/cbhcbhcbh/Quantum/pkg/user"
+	"github.com/cbhcbhcbh/Quantum/pkg/web"
 )
 
 // Injectors from wire.go:
+
+func InitializeWebServer(name string) (*server.Server, error) {
+	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	httpLog, err := log.NewHttpLog(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	engine := web.NewGinServer(name, httpLog)
+	httpServer := web.NewHttpServer(name, httpLog, configConfig, engine)
+	router := web.NewRouter(httpServer)
+	infraCloser := web.NewInfraCloser()
+	serverServer := server.NewServer(name, router, infraCloser)
+	return serverServer, nil
+}
 
 func InitializeChatServer(name string) (*server.Server, error) {
 	configConfig, err := config.NewConfig()

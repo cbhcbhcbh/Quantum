@@ -7,12 +7,21 @@ import (
 )
 
 type Config struct {
+	Web       *WebConfig       `mapstructure:"web"`
 	Chat      *ChatConfig      `mapstructure:"chat"`
 	User      *UserConfig      `mapstructure:"user"`
 	Forwarder *ForwarderConfig `mapstructure:"forwarder"`
 	Redis     *RedisConfig     `mapstructure:"redis"`
 	Kafka     *KafkaConfig     `mapstructure:"kafka"`
 	Cassandra *CassandraConfig `mapstructure:"cassandra"`
+}
+
+type WebConfig struct {
+	Http struct {
+		Server struct {
+			Port string
+		}
+	}
 }
 
 type ChatConfig struct {
