@@ -14,17 +14,21 @@ import (
 )
 
 type GrpcServer struct {
-	grpcPort string
-	logger   log.GrpcLog
-	s        *grpc.Server
+	grpcPort      string
+	logger        log.GrpcLog
+	s             *grpc.Server
+	forwardSvc    ForwardService
+	msgSubscriber *MessageSubscriber
 
 	forwarderpb.UnimplementedForwardServiceServer
 }
 
-func NewGrpcServer(name string, logger log.GrpcLog, config *config.Config) *GrpcServer {
+func NewGrpcServer(name string, logger log.GrpcLog, config *config.Config, forwardSvc ForwardService, msgSubscriber *MessageSubscriber) *GrpcServer {
 	srv := &GrpcServer{
-		grpcPort: config.Forwarder.Grpc.Server.Port,
-		logger:   logger,
+		grpcPort:      config.Forwarder.Grpc.Server.Port,
+		logger:        logger,
+		forwardSvc:    forwardSvc,
+		msgSubscriber: msgSubscriber,
 	}
 	srv.s = transport.InitializeGrpcServer(name, srv.logger)
 	return srv
@@ -48,9 +52,16 @@ func (srv *GrpcServer) Run() {
 			os.Exit(1)
 		}
 	}()
+	go func() {
+		err := srv.msgSubscriber.Run()
+		if err != nil {
+			srv.logger.Error(err.Error())
+			os.Exit(1)
+		}
+	}()
 }
 
 func (srv *GrpcServer) GracefulStop() error {
 	srv.s.GracefulStop()
-	return nil
+	return srv.msgSubscriber.GracefulStop()
 }
