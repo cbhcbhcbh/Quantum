@@ -14,7 +14,7 @@ type MessageSubscriber struct {
 	forwardSvc ForwardService
 }
 
-func NewMessageSubscriber(name string, router *message.Router, sub message.Subscriber, forwardSvc ForwardService) (*MessageSubscriber, error) {
+func NewMessageSubscriber(router *message.Router, sub message.Subscriber, forwardSvc ForwardService) (*MessageSubscriber, error) {
 	return &MessageSubscriber{
 		router:     router,
 		sub:        sub,

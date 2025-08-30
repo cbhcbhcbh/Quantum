@@ -12,6 +12,7 @@ import (
 	"github.com/cbhcbhcbh/Quantum/pkg/common/server"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/sonyflake"
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
+	"github.com/cbhcbhcbh/Quantum/pkg/forwarder"
 	"github.com/cbhcbhcbh/Quantum/pkg/infra"
 	"github.com/cbhcbhcbh/Quantum/pkg/user"
 	"github.com/cbhcbhcbh/Quantum/pkg/web"
@@ -101,6 +102,42 @@ func InitializeChatServer(name string) (*server.Server, error) {
 	chatRouter := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
 	serverServer := server.NewServer(name, chatRouter, infraCloser)
+	return serverServer, nil
+}
+
+func InitializeForwarderServer(name string) (*server.Server, error) {
+	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	grpcLog, err := log.NewGrpcLog(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	universalClient, err := infra.NewRedisClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	redisCacheImpl := infra.NewRedisCacheImpl(universalClient)
+	publisher, err := infra.NewKafkaPublisher(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	forwardRepoImpl := forwarder.NewForwardRepoImpl(redisCacheImpl, publisher)
+	forwardServiceImpl := forwarder.NewForwardServiceImpl(forwardRepoImpl)
+	router := infra.NewSimpleRouter()
+	subscriber, err := infra.NewKafkaSubscriber(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	messageSubscriber, err := forwarder.NewMessageSubscriber(router, subscriber, forwardServiceImpl)
+	if err != nil {
+		return nil, err
+	}
+	grpcServer := forwarder.NewGrpcServer(name, grpcLog, configConfig, forwardServiceImpl, messageSubscriber)
+	forwarderRouter := forwarder.NewRouter(grpcServer)
+	infraCloser := forwarder.NewInfraCloser()
+	serverServer := server.NewServer(name, forwarderRouter, infraCloser)
 	return serverServer, nil
 }
 

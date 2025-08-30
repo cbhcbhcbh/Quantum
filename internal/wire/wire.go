@@ -10,6 +10,7 @@ import (
 	"github.com/cbhcbhcbh/Quantum/pkg/common/server"
 	"github.com/cbhcbhcbh/Quantum/pkg/common/sonyflake"
 	"github.com/cbhcbhcbh/Quantum/pkg/config"
+	"github.com/cbhcbhcbh/Quantum/pkg/forwarder"
 	"github.com/cbhcbhcbh/Quantum/pkg/infra"
 	"github.com/cbhcbhcbh/Quantum/pkg/user"
 	"github.com/cbhcbhcbh/Quantum/pkg/web"
@@ -97,6 +98,38 @@ func InitializeChatServer(name string) (*server.Server, error) {
 		server.NewServer,
 	)
 
+	return &server.Server{}, nil
+}
+
+func InitializeForwarderServer(name string) (*server.Server, error) {
+	wire.Build(
+		config.NewConfig,
+		log.NewGrpcLog,
+
+		infra.NewRedisClient,
+		infra.NewRedisCacheImpl,
+		wire.Bind(new(infra.RedisCache), new(*infra.RedisCacheImpl)),
+
+		infra.NewKafkaPublisher,
+		infra.NewKafkaSubscriber,
+		infra.NewSimpleRouter,
+
+		forwarder.NewForwardRepoImpl,
+		wire.Bind(new(forwarder.ForwardRepo), new(*forwarder.ForwardRepoImpl)),
+
+		forwarder.NewForwardServiceImpl,
+		wire.Bind(new(forwarder.ForwardService), new(*forwarder.ForwardServiceImpl)),
+
+		forwarder.NewMessageSubscriber,
+
+		forwarder.NewGrpcServer,
+		wire.Bind(new(server.GrpcServer), new(*forwarder.GrpcServer)),
+		forwarder.NewRouter,
+		wire.Bind(new(server.Router), new(*forwarder.Router)),
+		forwarder.NewInfraCloser,
+		wire.Bind(new(server.InfraCloser), new(*forwarder.InfraCloser)),
+		server.NewServer,
+	)
 	return &server.Server{}, nil
 }
 
