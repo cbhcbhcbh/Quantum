@@ -11,6 +11,7 @@ type Config struct {
 	Chat      *ChatConfig      `mapstructure:"chat"`
 	User      *UserConfig      `mapstructure:"user"`
 	Forwarder *ForwarderConfig `mapstructure:"forwarder"`
+	Match     *MatchConfig     `mapstructure:"match"`
 	Redis     *RedisConfig     `mapstructure:"redis"`
 	Kafka     *KafkaConfig     `mapstructure:"kafka"`
 	Cassandra *CassandraConfig `mapstructure:"cassandra"`
@@ -100,6 +101,26 @@ type ForwarderConfig struct {
 	}
 }
 
+type MatchConfig struct {
+	Http struct {
+		Server struct {
+			Port    string
+			MaxConn int64
+			Swag    bool
+		}
+	}
+	Grpc struct {
+		Client struct {
+			Chat struct {
+				Endpoint string
+			}
+			User struct {
+				Endpoint string
+			}
+		}
+	}
+}
+
 type KafkaConfig struct {
 	Addrs   string
 	Version string
@@ -136,6 +157,26 @@ func setDefault() {
 	viper.SetDefault("chat.message.maxSizeByte", 4096)
 	viper.SetDefault("chat.jwt.secret", "replaceme")
 	viper.SetDefault("chat.jwt.expirationSecond", 86400)
+
+	viper.SetDefault("match.http.server.port", "5002")
+	viper.SetDefault("match.http.server.maxConn", 200)
+	viper.SetDefault("match.http.server.swag", false)
+	viper.SetDefault("match.grpc.client.chat.endpoint", "localhost:4000")
+	viper.SetDefault("match.grpc.client.user.endpoint", "localhost:4001")
+
+	viper.SetDefault("user.http.server.port", "5004")
+	viper.SetDefault("user.http.server.swag", false)
+	viper.SetDefault("user.grpc.server.port", "4001")
+	viper.SetDefault("user.oauth.cookie.maxAge", 3600)
+	viper.SetDefault("user.oauth.cookie.path", "/")
+	viper.SetDefault("user.oauth.cookie.domain", "localhost")
+	viper.SetDefault("user.oauth.google.redirectUrl", "http://localhost/api/user/oauth2/google/callback")
+	viper.SetDefault("user.oauth.google.clientId", "")
+	viper.SetDefault("user.oauth.google.clientSecret", "")
+	viper.SetDefault("user.oauth.google.scopes", "https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile")
+	viper.SetDefault("user.auth.cookie.maxAge", 86400)
+	viper.SetDefault("user.auth.cookie.path", "/")
+	viper.SetDefault("user.auth.cookie.domain", "localhost")
 
 	viper.SetDefault("forwarder.grpc.server.port", "4002")
 
